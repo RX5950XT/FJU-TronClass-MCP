@@ -32,6 +32,7 @@ def load_cookie() -> str:
 
     # 2. pydantic-settings（環境變數 / .env）
     from fju_tronclass.config import get_settings
+
     settings = get_settings()
     if settings.tronclass_session_cookie:
         logger.debug("從環境變數讀取 cookie")

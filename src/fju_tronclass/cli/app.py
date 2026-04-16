@@ -22,17 +22,18 @@ app.add_typer(login.app, name="login", invoke_without_command=True)
 
 @app.command("whoami")
 def whoami(
-    verbose: bool = typer.Option(False, "--verbose", "-v", help="顯示詳細資訊"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="顯示詳細資訊"),  # noqa: B008
 ) -> None:
     """驗證目前的 session 是否有效，並顯示基本資訊。"""
     import asyncio
+
+    from rich.console import Console
 
     from fju_tronclass.auth.cookie_store import load_cookie
     from fju_tronclass.auth.session_probe import probe_session
     from fju_tronclass.client.http import TronClassHttp
     from fju_tronclass.config import get_settings
     from fju_tronclass.errors import AuthError, SessionExpiredError
-    from rich.console import Console
 
     console = Console()
     settings = get_settings()
@@ -41,10 +42,12 @@ def whoami(
         cookie = load_cookie()
     except AuthError as e:
         console.print(f"[red]認證失敗：{e}[/red]")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from None
 
     async def _check() -> int:
-        async with TronClassHttp(session_cookie=cookie, base_url=settings.tronclass_base_url) as http:
+        async with TronClassHttp(
+            session_cookie=cookie, base_url=settings.tronclass_base_url
+        ) as http:
             return await probe_session(http)
 
     try:
@@ -54,11 +57,12 @@ def whoami(
             console.print(f"Base URL: {settings.tronclass_base_url}")
     except SessionExpiredError:
         console.print("[red]Session 已過期，請執行 `fjumcp login` 重新登入。[/red]")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from None
 
 
 @app.command("serve")
 def serve() -> None:
     """啟動 MCP server（等同 python -m fju_tronclass）。"""
     from fju_tronclass.__main__ import main
+
     main()

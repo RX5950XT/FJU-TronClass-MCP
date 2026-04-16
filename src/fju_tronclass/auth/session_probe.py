@@ -18,7 +18,6 @@ async def probe_session(http_client: object) -> int:
     Raises:
         SessionExpiredError: session 已過期或無效
     """
-    from fju_tronclass.client.http import TronClassHttp
     from fju_tronclass.client.tronclass import TronClassClient
 
     client = TronClassClient(http_client)  # type: ignore[arg-type]

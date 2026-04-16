@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
 
 from fju_tronclass.auth.cookie_store import load_cookie
 from fju_tronclass.client.http import TronClassHttp

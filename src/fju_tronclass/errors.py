@@ -40,8 +40,7 @@ class SchemaError(FjuTronclassError):
     def __init__(self, model_name: str, raw_json: object) -> None:
         self.raw_json = raw_json
         super().__init__(
-            f"API 回應格式已變更，無法解析為 {model_name}。"
-            " 請回報 issue 並附上 --raw 輸出。"
+            f"API 回應格式已變更，無法解析為 {model_name}。 請回報 issue 並附上 --raw 輸出。"
         )
 
 

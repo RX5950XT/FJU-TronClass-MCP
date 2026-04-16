@@ -24,8 +24,14 @@ async def fju_check_auth() -> dict:  # type: ignore[type-arg]
     try:
         cookie = load_cookie()
         settings = get_settings()
-        async with TronClassHttp(session_cookie=cookie, base_url=settings.tronclass_base_url) as http:
+        async with TronClassHttp(
+            session_cookie=cookie, base_url=settings.tronclass_base_url
+        ) as http:
             count = await probe_session(http)
-        return {"status": "ok", "message": f"已連線，本學期共 {count} 門課程", "course_count": count}
+        return {
+            "status": "ok",
+            "message": f"已連線，本學期共 {count} 門課程",
+            "course_count": count,
+        }
     except (AuthError, SessionExpiredError) as e:
         return {"status": "error", "message": str(e), "course_count": 0}

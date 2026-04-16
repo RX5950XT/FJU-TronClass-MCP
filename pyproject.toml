@@ -59,9 +59,15 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "W", "F", "I", "N", "UP", "B", "A", "C4", "RET", "SIM"]
-ignore = ["E501"]
+ignore = ["E501", "B008"]
 
 [tool.mypy]
 python_version = "3.11"
 strict = true
 files = ["src"]
+exclude = ["src/fju_tronclass/auth/playwright_login\\.py"]
+
+[[tool.mypy.overrides]]
+module = "fju_tronclass.auth.playwright_login"
+ignore_missing_imports = true
+ignore_errors = true

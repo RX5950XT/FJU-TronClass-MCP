@@ -2,16 +2,17 @@
 
 from __future__ import annotations
 
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
+
+import typer
+from rich.console import Console
 
 from fju_tronclass.auth.cookie_store import load_cookie
 from fju_tronclass.client.http import TronClassHttp
 from fju_tronclass.client.tronclass import TronClassClient
 from fju_tronclass.config import get_settings
 from fju_tronclass.errors import AuthError
-from rich.console import Console
-import typer
 
 console = Console()
 
@@ -23,7 +24,7 @@ async def build_client() -> AsyncGenerator[TronClassClient, None]:
         cookie = load_cookie()
     except AuthError as e:
         console.print(f"[red]{e}[/red]")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from None
 
     settings = get_settings()
     async with TronClassHttp(session_cookie=cookie, base_url=settings.tronclass_base_url) as http:

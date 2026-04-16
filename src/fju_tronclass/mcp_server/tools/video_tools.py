@@ -29,7 +29,9 @@ async def fju_mark_video_complete(activity_id: int, duration_seconds: int) -> di
     chunks = max(0, -(-duration_seconds // CHUNK_SIZE)) if duration_seconds > 0 else 0
 
     async with get_client() as client:
-        result = await mark_video_complete(client, activity_id=activity_id, duration=duration_seconds)
+        result = await mark_video_complete(
+            client, activity_id=activity_id, duration=duration_seconds
+        )
 
     if result is None:
         return {"completeness": "none", "completeness_pct": 0, "chunks_sent": 0}

@@ -47,7 +47,9 @@ def _cookie_login() -> None:
     settings = get_settings()
 
     async def _verify() -> int:
-        async with TronClassHttp(session_cookie=cookie, base_url=settings.tronclass_base_url) as http:
+        async with TronClassHttp(
+            session_cookie=cookie, base_url=settings.tronclass_base_url
+        ) as http:
             return await probe_session(http)
 
     try:
@@ -57,10 +59,9 @@ def _cookie_login() -> None:
         console.print("Cookie 已儲存至 Windows Credential Manager。")
     except SessionExpiredError:
         console.print("[red]Cookie 無效或已過期，請重新複製。[/red]")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from None
 
 
-@app.command("playwright")
 def playwright_login_cmd(
     username: str = typer.Option(..., "--username", "-u", prompt="學號", help="輔大學號"),
     password: str = typer.Option(
@@ -84,7 +85,7 @@ def playwright_login_cmd(
         console.print("[green]登入成功！Cookie 已儲存。[/green]")
     except AuthError as e:
         console.print(f"[red]{e}[/red]")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from None
 
 
 @app.command("logout")

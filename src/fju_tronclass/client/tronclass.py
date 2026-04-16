@@ -94,9 +94,7 @@ class TronClassClient:
 
     async def get_learning_activity(self, course_id: int, activity_id: int) -> Activity:
         """取得課程下的指定學習活動詳情。"""
-        data = await self._http.get_json(
-            f"/api/course/{course_id}/learning-activity/{activity_id}"
-        )
+        data = await self._http.get_json(f"/api/course/{course_id}/learning-activity/{activity_id}")
         try:
             return Activity.model_validate(data)
         except Exception as e:

@@ -18,7 +18,9 @@ def configure_logging(level: str = "INFO") -> None:
             structlog.stdlib.add_log_level,
             structlog.stdlib.add_logger_name,
             structlog.processors.TimeStamper(fmt="iso"),
-            structlog.dev.ConsoleRenderer() if sys.stderr.isatty() else structlog.processors.JSONRenderer(),
+            structlog.dev.ConsoleRenderer()
+            if sys.stderr.isatty()
+            else structlog.processors.JSONRenderer(),
         ],
         wrapper_class=structlog.make_filtering_bound_logger(log_level),
         context_class=dict,
@@ -29,4 +31,4 @@ def configure_logging(level: str = "INFO") -> None:
 
 def get_logger(name: str) -> structlog.BoundLogger:
     """取得具名的 structlog logger。"""
-    return structlog.get_logger(name)
+    return structlog.get_logger(name)  # type: ignore[no-any-return]

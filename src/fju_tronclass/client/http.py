@@ -7,7 +7,6 @@ from typing import Any
 
 import httpx
 from tenacity import (
-    RetryError,
     retry,
     retry_if_exception,
     stop_after_attempt,
