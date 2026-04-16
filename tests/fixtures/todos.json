@@ -1,0 +1,23 @@
+{
+  "list": [
+    {
+      "id": 20001,
+      "title": "第三週作業：鏈結串列實作",
+      "course_id": 10001,
+      "course_name": "資料結構",
+      "due_time": "2025-04-15T23:59:00+08:00",
+      "type": "assignment",
+      "is_done": false
+    },
+    {
+      "id": 20002,
+      "title": "第二週影片：傅立葉轉換",
+      "course_id": 10002,
+      "course_name": "通訊原理",
+      "due_time": "2025-04-12T23:59:00+08:00",
+      "type": "video",
+      "is_done": false
+    }
+  ],
+  "total": 2
+}
