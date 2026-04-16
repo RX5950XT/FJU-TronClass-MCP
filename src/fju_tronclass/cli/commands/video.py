@@ -46,6 +46,80 @@ def mark_complete_cmd(
     asyncio.run(_run())
 
 
+@app.command("batch-complete")
+def batch_complete_cmd(
+    course_id: int = typer.Argument(..., help="課程 ID（從 fjumcp courses list 取得）"),
+    include_completed: bool = typer.Option(False, "--include-completed", help="包含已完成的影片（重新標記）"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="只顯示會處理的影片，不實際呼叫 API"),
+) -> None:
+    """
+    一次標記課程中所有影片為完整觀看（不需逐一提供 activity_id）。
+
+    注意：此操作繞過觀看驗證，使用者須自行評估學業誠信風險。
+    建議先用 --dry-run 確認影片清單。
+    """
+    from fju_tronclass.services.video import mark_all_videos_in_course
+
+    async def _dry_run() -> None:
+        from fju_tronclass.models.activity import Activity
+
+        async with build_client() as client:
+            activities = await client.get_course_activities(course_id)
+
+        videos: list[Activity] = [
+            a for a in activities
+            if a.is_video and a.video_duration is not None and a.video_duration > 0
+        ]
+        pending = [a for a in videos if not a.is_complete] if not include_completed else videos
+
+        table = Table(title=f"課程 {course_id} 待標記影片（共 {len(pending)} 部）", show_lines=True)
+        table.add_column("Activity ID", style="dim", width=14)
+        table.add_column("名稱", min_width=20)
+        table.add_column("時長", width=10)
+        table.add_column("目前完成度", width=12)
+        table.add_column("分段數", width=8)
+
+        for a in pending:
+            dur = a.video_duration or 0
+            chunks = max(0, -(-dur // CHUNK_SIZE))
+            table.add_row(str(a.id), a.display_name, f"{dur}s", f"{a.completeness}%", str(chunks))
+
+        console.print(table)
+        console.print("[yellow]移除 --dry-run 即實際執行標記。[/yellow]")
+
+    async def _run() -> None:
+        skip = not include_completed
+        with console.status(f"正在標記課程 {course_id} 所有影片…"):
+            async with build_client() as client:
+                results = await mark_all_videos_in_course(
+                    client, course_id=course_id, skip_completed=skip
+                )
+
+        table = Table(title=f"課程 {course_id} 批量標記結果", show_lines=True)
+        table.add_column("Activity ID", style="dim", width=14)
+        table.add_column("名稱", min_width=20)
+        table.add_column("時長", width=10)
+        table.add_column("完成度", width=10)
+        table.add_column("狀態", width=8)
+
+        for r in results:
+            status = "[green]✓[/green]" if r.success else f"[red]✗ {r.error}[/red]"
+            table.add_row(str(r.activity_id), r.activity_name, f"{r.duration}s",
+                          f"{r.completeness_pct}%", status)
+
+        console.print(table)
+        success = sum(1 for r in results if r.success)
+        console.print(
+            f"\n共 {len(results)} 部影片，[green]成功 {success} 部[/green]，"
+            f"[red]失敗 {len(results) - success} 部[/red]"
+        )
+
+    if dry_run:
+        asyncio.run(_dry_run())
+    else:
+        asyncio.run(_run())
+
+
 def _show_dry_run(activity_id: int, duration: int) -> None:
     """Dry-run：顯示分段資訊而不呼叫 API。"""
     console.print(f"[bold][DRY RUN][/bold] 活動 {activity_id}，時長 {duration} 秒")

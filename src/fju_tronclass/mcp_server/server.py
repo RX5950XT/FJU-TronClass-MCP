@@ -15,6 +15,7 @@ mcp = FastMCP(
 
 # 載入所有 tool 模組（透過 import 觸發 @mcp.tool() 裝飾器）
 from fju_tronclass.mcp_server.tools import (  # noqa: E402, F401
+    activity_tools,
     auth_tools,
     bulletin_tools,
     course_tools,

@@ -11,16 +11,16 @@ from fju_tronclass.models.course import Course
 from fju_tronclass.models.todo import Todo
 
 
-def _make_course(id: int, semester: str = "113-2") -> Course:
-    return Course(id=id, name=f"課程{id}", semester=semester)
+def _make_course(course_id: int, semester: str = "113-2") -> Course:
+    return Course(id=course_id, name=f"課程{course_id}", semester=semester)
 
 
-def _make_todo(id: int, is_done: bool = False) -> Todo:
-    return Todo(id=id, title=f"作業{id}", course_id=1, is_done=is_done)
+def _make_todo(todo_id: int, is_done: bool = False) -> Todo:
+    return Todo(id=todo_id, title=f"作業{todo_id}", course_id=1, is_done=is_done)
 
 
-def _make_bulletin(id: int, course_id: int = 10) -> Bulletin:
-    return Bulletin(id=id, title=f"公告{id}", course_id=course_id)
+def _make_bulletin(bulletin_id: int, course_id: int = 10) -> Bulletin:
+    return Bulletin(id=bulletin_id, title=f"公告{bulletin_id}", course_id=course_id)
 
 
 # ------------------------------------------------------------------ #

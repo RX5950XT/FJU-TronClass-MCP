@@ -1,0 +1,50 @@
+{
+  "list": [
+    {
+      "id": 40001,
+      "name": "第一週講義：基礎資料結構",
+      "title": "第一週講義：基礎資料結構",
+      "type": "material",
+      "completeness": 0,
+      "completenessTip": "",
+      "uploads": [
+        {"id": 50001, "name": "第一週講義.pdf", "size": 1048576},
+        {"id": 50002, "name": "第一週範例程式碼.zip", "size": 20480}
+      ],
+      "data": null
+    },
+    {
+      "id": 40002,
+      "name": "第二週講義：排序演算法",
+      "title": "第二週講義：排序演算法",
+      "type": "material",
+      "completeness": 0,
+      "completenessTip": "",
+      "uploads": [
+        {"id": 50003, "name": "第二週講義.pdf", "size": 2097152}
+      ],
+      "data": null
+    },
+    {
+      "id": 40003,
+      "name": "",
+      "title": "第一週課程影片：陣列與鏈結串列",
+      "type": "online_video",
+      "completeness": 100,
+      "completenessTip": "已完成",
+      "uploads": [],
+      "data": {"duration": 850}
+    },
+    {
+      "id": 40004,
+      "name": "",
+      "title": "第二週課程影片：快速排序法",
+      "type": "online_video",
+      "completeness": 0,
+      "completenessTip": "0%",
+      "uploads": [],
+      "data": {"duration": 1200}
+    }
+  ],
+  "total": 4
+}

@@ -52,6 +52,26 @@ markers = [
     "e2e: end-to-end tests (requires real server)",
 ]
 
+[tool.coverage.run]
+source = ["src/fju_tronclass"]
+omit = [
+    "*/cli/*",
+    "*/auth/*",
+    "*/config.py",
+    "*/logging.py",
+    "*/__main__.py",
+    "*/mcp_server/_client_factory.py",
+]
+
+[tool.coverage.report]
+fail_under = 80
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+    "@overload",
+]
+
 [tool.ruff]
 src = ["src"]
 line-length = 100

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, call
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -84,7 +84,7 @@ async def test_chunks_cover_full_duration() -> None:
     assert segments[0][0] == 0
     assert segments[-1][1] == duration
     # 連續性：每段的 end 等於下一段的 start
-    for (_, e), (s2, _) in zip(segments, segments[1:]):
+    for (_, e), (s2, _) in zip(segments, segments[1:], strict=False):
         assert e == s2
 
 

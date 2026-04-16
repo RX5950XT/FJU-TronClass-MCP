@@ -19,3 +19,5 @@ wheels/
 
 # Logs
 *.log
+.coverage
+skills-lock.json

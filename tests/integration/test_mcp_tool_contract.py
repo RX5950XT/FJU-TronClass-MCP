@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from fju_tronclass.mcp_server.server import mcp
 
 
@@ -26,6 +24,9 @@ class TestToolRegistration:
         "fju_get_upload_info",
         "fju_download_upload",
         "fju_mark_video_complete",
+        "fju_list_course_activities",
+        "fju_search_and_download",
+        "fju_batch_mark_videos_complete",
     ]
 
     def test_all_expected_tools_registered(self) -> None:
@@ -98,6 +99,33 @@ class TestToolSchemas:
         required = schema.get("required", [])
         assert "course_id" in required
         assert "activity_id" in required
+
+    def test_fju_list_course_activities_requires_course_id(self) -> None:
+        schema = self._get_input_schema("fju_list_course_activities")
+        required = schema.get("required", [])
+        assert "course_id" in required
+
+    def test_fju_search_and_download_requires_keyword(self) -> None:
+        schema = self._get_input_schema("fju_search_and_download")
+        required = schema.get("required", [])
+        assert "keyword" in required
+
+    def test_fju_search_and_download_has_optional_params(self) -> None:
+        schema = self._get_input_schema("fju_search_and_download")
+        props = schema.get("properties", {})
+        assert "course_id" in props
+        assert "dest_dir" in props
+        assert "search_all_courses" in props
+
+    def test_fju_batch_mark_videos_complete_requires_course_id(self) -> None:
+        schema = self._get_input_schema("fju_batch_mark_videos_complete")
+        required = schema.get("required", [])
+        assert "course_id" in required
+
+    def test_fju_batch_mark_videos_complete_has_skip_completed_param(self) -> None:
+        schema = self._get_input_schema("fju_batch_mark_videos_complete")
+        props = schema.get("properties", {})
+        assert "skip_completed" in props
 
 
 class TestToolDescriptions:
