@@ -29,10 +29,10 @@ async def test_get_my_courses_schema_error(
     httpx_mock: pytest_httpx.HTTPXMock,
     client,  # type: ignore[no-untyped-def]
 ) -> None:
-    # "list" 欄位給字串會讓 pydantic 無法解析為 list[Course]
+    # "courses" 欄位給字串會讓 pydantic 無法解析為 list[Course]
     httpx_mock.add_response(
         url="https://elearn2.fju.edu.tw/api/my-courses?page=1&page_size=20",
-        json={"list": "not-a-list"},
+        json={"courses": "not-a-list"},
     )
     with pytest.raises(SchemaError):
         await client.get_my_courses()
@@ -43,10 +43,10 @@ async def test_get_todos_schema_error(
     httpx_mock: pytest_httpx.HTTPXMock,
     client,  # type: ignore[no-untyped-def]
 ) -> None:
-    # "list" 欄位給整數會讓 pydantic 無法解析為 list[Todo]
+    # "todo_list" 欄位給整數會讓 pydantic 無法解析為 list[Todo]
     httpx_mock.add_response(
         url="https://elearn2.fju.edu.tw/api/todos",
-        json={"list": 42},
+        json={"todo_list": 42},
     )
     with pytest.raises(SchemaError):
         await client.get_todos()
@@ -59,7 +59,7 @@ async def test_get_course_bulletins_success(
 ) -> None:
     httpx_mock.add_response(
         url="https://elearn2.fju.edu.tw/api/course-bulletins?course_id=101",
-        json={"list": [], "total": 0},
+        json={"bulletins": [], "total": 0},
     )
     result = await client.get_course_bulletins(101)
     assert result == []
@@ -70,10 +70,10 @@ async def test_get_course_bulletins_schema_error(
     httpx_mock: pytest_httpx.HTTPXMock,
     client,  # type: ignore[no-untyped-def]
 ) -> None:
-    # "list" 欄位給布林值會讓 pydantic 無法解析為 list[Bulletin]
+    # "bulletins" 欄位給布林值會讓 pydantic 無法解析為 list[Bulletin]
     httpx_mock.add_response(
         url="https://elearn2.fju.edu.tw/api/course-bulletins?course_id=101",
-        json={"list": True},
+        json={"bulletins": True},
     )
     with pytest.raises(SchemaError):
         await client.get_course_bulletins(101)

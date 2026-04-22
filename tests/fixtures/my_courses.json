@@ -1,20 +1,22 @@
 {
-  "list": [
+  "courses": [
     {
       "id": 10001,
       "name": "資料結構",
-      "code": "CS301",
-      "semester": "113-2",
-      "teacher_name": "王大明",
+      "course_code": "CS301",
+      "academic_year": {"id": 47, "name": "113", "sort": 2},
+      "semester": {"id": 386, "name": "1132", "real_name": "2", "sort": 2},
+      "instructors": [{"id": 1001, "name": "王大明"}],
       "status": "active",
       "cover_url": null
     },
     {
       "id": 10002,
       "name": "通訊原理",
-      "code": "EE401",
-      "semester": "113-2",
-      "teacher_name": "李小華",
+      "course_code": "EE401",
+      "academic_year": {"id": 47, "name": "113", "sort": 2},
+      "semester": {"id": 386, "name": "1132", "real_name": "2", "sort": 2},
+      "instructors": [{"id": 1002, "name": "李小華"}],
       "status": "active",
       "cover_url": null
     }

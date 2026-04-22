@@ -19,5 +19,5 @@ class Bulletin(BaseModel):
 class BulletinListResponse(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    items: list[Bulletin] = Field(default_factory=list, alias="list")
+    items: list[Bulletin] = Field(default_factory=list, alias="bulletins")
     total: int = 0
