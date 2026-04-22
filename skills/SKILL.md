@@ -6,16 +6,10 @@ version: 1.0.0
 
 # FJU TronClass MCP — 操作技能
 
-## 專案位置
-
-```
-D:/Workspace_cloud/Personal_Project/FJU-TronClass-MCP
-```
-
 執行 CLI 前先確認 `.env` 存在且有效：
 ```powershell
-# 在專案目錄執行
-.venv/Scripts/fjumcp.exe whoami
+# 在 clone 下來的專案目錄中執行
+uv run fjumcp whoami
 ```
 
 ---
@@ -64,7 +58,6 @@ fjumcp todos list --include-done  # 含已完成
 
 ```powershell
 fjumcp bulletins list <course_id>
-# 例：fjumcp bulletins list 382035
 ```
 
 ### 課程活動（教材與影片）
@@ -118,17 +111,17 @@ fjumcp video batch-complete <course_id> --include-completed  # 含已完成
 fjumcp courses list --semester 114-2
 
 # 2. 查看該課程的活動和 upload ID
-fjumcp activities list 382035
+fjumcp activities list <course_id>
 
 # 3. 下載需要的 upload
-fjumcp download upload 33981387 --dest D:/TronClass
+fjumcp download upload <upload_id> --dest ~/Downloads
 ```
 
 ### 工作流程 B：關鍵字搜尋下載
 
 ```powershell
 # 不知道 ID，只知道檔案名稱關鍵字
-fjumcp download search "期中" --course 374430
+fjumcp download search "期中" --course <course_id>
 fjumcp download search "講義" --all --dry-run  # 先 dry-run 確認
 ```
 
@@ -170,6 +163,7 @@ fjumcp todos list  # 列出所有未繳交的作業，含截止時間
 
 ## 環境資訊
 
-- **執行檔**：`.venv/Scripts/fjumcp.exe`（或 `uv run fjumcp`）
+- **執行檔**：`uv run fjumcp`（或 `.venv/Scripts/fjumcp.exe`）
 - **MCP Server**：`uv run python -m fju_tronclass`
 - **GitHub**：https://github.com/RX5950XT/FJU-TronClass-MCP
+- **安裝**：`git clone https://github.com/RX5950XT/FJU-TronClass-MCP.git && uv sync`
