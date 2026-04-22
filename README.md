@@ -22,7 +22,7 @@
 ### 安裝步驟
 
 ```powershell
-git clone <此 repo>
+git clone https://github.com/RX5950XT/FJU-TronClass-MCP.git
 cd FJU-TronClass-MCP
 uv sync
 ```
@@ -55,24 +55,36 @@ TRONCLASS_SESSION_COOKIE=V2-你的cookie值
 # 驗證連線
 uv run fjumcp whoami
 
-# 列出課程
+# 列出課程（學期格式：114-2、114-1、113-2…）
 uv run fjumcp courses list
-uv run fjumcp courses list --semester 113-2
+uv run fjumcp courses list --semester 114-2
 
 # 待辦事項
 uv run fjumcp todos list
 uv run fjumcp todos list --include-done
 
 # 課程公告
-uv run fjumcp bulletins list 10001
+uv run fjumcp bulletins list <course_id>
 
-# 下載教材
-uv run fjumcp download upload 30001
-uv run fjumcp download upload 30001 --dest D:/Downloads
+# 課程活動（教材 & 影片清單，含 upload ID）
+uv run fjumcp activities list <course_id>
+uv run fjumcp activities list <course_id> --videos-only
 
-# 標記影片完成（--dry-run 只顯示計畫，不實際執行）
-uv run fjumcp video mark-complete 40001 850 --dry-run
-uv run fjumcp video mark-complete 40001 850
+# 下載教材（upload ID 從 activities list 取得）
+uv run fjumcp download upload <upload_id>
+uv run fjumcp download upload <upload_id> --dest D:/Downloads
+
+# 以關鍵字搜尋並下載（不需要知道 upload ID）
+uv run fjumcp download search "關鍵字" --course <course_id>
+uv run fjumcp download search "關鍵字" --all --dry-run   # 跨所有課程搜尋
+
+# 標記單支影片完成（--dry-run 只顯示計畫，不實際執行）
+uv run fjumcp video mark-complete <activity_id> <duration_seconds> --dry-run
+uv run fjumcp video mark-complete <activity_id> <duration_seconds>
+
+# 批次標記課程所有影片完成
+uv run fjumcp video batch-complete <course_id> --dry-run
+uv run fjumcp video batch-complete <course_id>
 
 # 啟動 MCP server
 uv run fjumcp serve
@@ -115,13 +127,16 @@ claude mcp add fju-tronclass -- uv --directory "D:/Workspace_cloud/Personal_Proj
 | Tool | 說明 |
 |------|------|
 | `fju_check_auth` | 驗證 session 是否有效 |
-| `fju_list_courses` | 列出我的課程清單 |
+| `fju_list_courses` | 列出我的課程清單（可依學期過濾） |
 | `fju_list_todos` | 列出待辦事項 |
 | `fju_list_course_bulletins` | 列出課程公告 |
+| `fju_list_course_activities` | 列出課程活動（教材 & 影片），含 upload ID |
+| `fju_get_activity` | 取得單一活動詳情 |
 | `fju_get_upload_info` | 取得教材 metadata |
 | `fju_download_upload` | 下載課程教材 |
-| `fju_get_activity` | 取得活動詳情 |
-| `fju_mark_video_complete` | 標記影片為完整觀看 |
+| `fju_search_and_download` | 以關鍵字搜尋教材並下載（不需 upload ID） |
+| `fju_mark_video_complete` | 標記單支影片為完整觀看 |
+| `fju_batch_mark_videos_complete` | 批次標記課程中所有影片為完整觀看 |
 
 ## 開發
 
