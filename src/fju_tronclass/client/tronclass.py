@@ -99,7 +99,7 @@ class TronClassClient:
         endpoint: GET /api/course/{courseId}/activities
         從 tronclass-downloader 技能逆向：scope.course.activities 由此 endpoint 載入。
         """
-        data = await self._http.get_json(f"/api/course/{course_id}/activities")
+        data = await self._http.get_json(f"/api/courses/{course_id}/activities")
         try:
             return ActivityListResponse.model_validate(data).items
         except Exception as e:

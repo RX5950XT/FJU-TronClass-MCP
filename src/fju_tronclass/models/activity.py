@@ -44,18 +44,18 @@ class Activity(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     id: int
-    name: str = ""       # 教材類型使用 name 欄位
-    title: str = ""      # 影片類型使用 title 欄位
+    name: str | None = None  # 教材類型使用 name 欄位（可為 null）
+    title: str = ""           # 影片/活動標題
     type: str = ""
-    completeness: int = 0
-    completeness_tip: str = Field(default="", alias="completenessTip")
+    completeness: int | None = None
+    completeness_tip: str | None = Field(default=None, alias="completenessTip")
     uploads: list[ActivityUpload] = Field(default_factory=list)
     data: ActivityData | None = None
 
     @property
     def display_name(self) -> str:
-        """回傳最佳顯示名稱（影片用 title，教材用 name）。"""
-        return self.title or self.name
+        """回傳最佳顯示名稱（title 優先，次為 name）。"""
+        return self.title or (self.name or "")
 
     @property
     def video_duration(self) -> int | None:
@@ -77,11 +77,11 @@ class Activity(BaseModel):
         """根據 completenessTip 或 completeness 欄位判斷是否已完成。"""
         if self.completeness_tip:
             return "已完成" in self.completeness_tip
-        return self.completeness >= 100
+        return (self.completeness or 0) >= 100
 
 
 class ActivityListResponse(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    items: list[Activity] = Field(default_factory=list, alias="list")
+    items: list[Activity] = Field(default_factory=list, alias="activities")
     total: int = 0
