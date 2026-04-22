@@ -104,7 +104,7 @@ uv run python -m fju_tronclass
     "fju-tronclass": {
       "command": "uv",
       "args": [
-        "--directory", "D:/Workspace_cloud/Personal_Project/FJU-TronClass-MCP",
+        "--directory", "/path/to/FJU-TronClass-MCP",
         "run",
         "python", "-m", "fju_tronclass"
       ],
@@ -116,10 +116,12 @@ uv run python -m fju_tronclass
 }
 ```
 
+將 `/path/to/FJU-TronClass-MCP` 替換為實際的 clone 路徑（例如 `C:/Users/yourname/FJU-TronClass-MCP`）。
+
 ### Claude Code
 
 ```powershell
-claude mcp add fju-tronclass -- uv --directory "D:/Workspace_cloud/Personal_Project/FJU-TronClass-MCP" run python -m fju_tronclass
+claude mcp add fju-tronclass -- uv --directory "/path/to/FJU-TronClass-MCP" run python -m fju_tronclass
 ```
 
 ## MCP Tools
