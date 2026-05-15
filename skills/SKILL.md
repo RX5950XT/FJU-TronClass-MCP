@@ -6,10 +6,12 @@ version: 1.0.0
 
 # FJU TronClass MCP — 操作技能
 
-執行 CLI 前先確認 `.env` 存在且有效：
+這個 skill 是給 agent 用的配套操作手冊。
+當任務和輔大 TronClass、`fjumcp`、教材下載、待辦查詢、影片完成標記有關時，優先依這份 skill 操作。
+
+執行 CLI 前先確認認證可用：
 ```powershell
-# 在 clone 下來的專案目錄中執行
-uv run fjumcp whoami
+fjumcp whoami
 ```
 
 ---
@@ -19,7 +21,7 @@ uv run fjumcp whoami
 Cookie 儲存方式（三選一，優先順序依序）：
 1. 環境變數：`TRONCLASS_SESSION_COOKIE=V2-...`
 2. `.env` 檔（專案根目錄）：`TRONCLASS_SESSION_COOKIE=V2-...`
-3. Windows Credential Manager：`uv run fjumcp login`
+3. Windows Credential Manager：`fjumcp login cookie`
 
 **取得 Cookie**：瀏覽器登入 https://elearn2.fju.edu.tw → F12 → Application → Cookies → 複製 `session` 欄位（`V2-` 開頭）
 
@@ -67,7 +69,10 @@ fjumcp bulletins list <course_id>
 fjumcp activities list <course_id>
 
 # 只顯示影片類型
-fjumcp activities list <course_id> --videos-only
+fjumcp activities list <course_id> --videos
+
+# 只顯示教材類型
+fjumcp activities list <course_id> --materials
 ```
 
 **輸出說明**：
@@ -155,7 +160,7 @@ fjumcp todos list  # 列出所有未繳交的作業，含截止時間
 
 - **學期格式**：`學年-學期`，如 `114-2`（民國 114 年第 2 學期）
 - **API 限制**：`post_activity_read` 每段最多 125 秒，超過會自動分段
-- **影片 activity_id**：從 `activities list --videos-only` 取得，不是 upload_id
+- **影片 activity_id**：從 `activities list --videos` 取得，不是 upload_id
 - **Cookie 有效期**：session 可能過期，過期時 `whoami` 會顯示認證失敗
 - **下載路徑預設**：`~/Downloads/TronClass/`，可用 `--dest` 覆蓋
 
@@ -163,7 +168,8 @@ fjumcp todos list  # 列出所有未繳交的作業，含截止時間
 
 ## 環境資訊
 
-- **執行檔**：`uv run fjumcp`（或 `.venv/Scripts/fjumcp.exe`）
-- **MCP Server**：`uv run python -m fju_tronclass`
+- **執行檔**：優先用全域 `fjumcp`；若尚未安裝全域 CLI，再用 `uv run fjumcp`
+- **MCP Server**：`fjumcp serve` 或 `python -m fju_tronclass`
 - **GitHub**：https://github.com/RX5950XT/FJU-TronClass-MCP
 - **安裝**：`git clone https://github.com/RX5950XT/FJU-TronClass-MCP.git && uv sync`
+- **全域 CLI 安裝**：`uv tool install -e .`

@@ -23,6 +23,9 @@ class Course(BaseModel):
         if not isinstance(data, dict):
             return data
 
+        if data.get("semester") is None:
+            data = {**data, "semester": ""}
+
         # semester: {"name": "1142", "real_name": "2"} → "114-2"
         sem = data.get("semester")
         if isinstance(sem, dict):
