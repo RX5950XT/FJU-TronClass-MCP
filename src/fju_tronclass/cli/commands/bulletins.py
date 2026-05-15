@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-import asyncio
-
 import typer
 from rich.console import Console
 from rich.table import Table
 
-from fju_tronclass.cli._helpers import build_client
+from fju_tronclass.cli._helpers import build_client, run_async_command
 
 app = typer.Typer(help="課程公告相關操作。")
 console = Console()
@@ -41,4 +39,4 @@ def list_bulletins(
 
         console.print(table)
 
-    asyncio.run(_run())
+    run_async_command(_run())

@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-import asyncio
-
 import typer
 from rich.console import Console
 from rich.table import Table
 
-from fju_tronclass.cli._helpers import build_client
+from fju_tronclass.cli._helpers import build_client, run_async_command
 
 app = typer.Typer(help="課程活動（教材、影片）相關操作。")
 console = Console()
@@ -65,4 +63,4 @@ def list_cmd(
                     size_mb = u.size / 1_048_576
                     console.print(f"  upload {u.id}  {u.name}  ({size_mb:.1f} MB)")
 
-    asyncio.run(_run())
+    run_async_command(_run())

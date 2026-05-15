@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-import asyncio
-
 import typer
 from rich.console import Console
 from rich.table import Table
 
-from fju_tronclass.cli._helpers import build_client
+from fju_tronclass.cli._helpers import build_client, run_async_command
 from fju_tronclass.services.video import CHUNK_SIZE
 
 app = typer.Typer(help="影片觀看相關操作。")
@@ -43,7 +41,7 @@ def mark_complete_cmd(
         else:
             console.print(f"[dim]活動 {activity_id} duration=0，無需操作。[/dim]")
 
-    asyncio.run(_run())
+    run_async_command(_run())
 
 
 @app.command("batch-complete")
@@ -115,9 +113,9 @@ def batch_complete_cmd(
         )
 
     if dry_run:
-        asyncio.run(_dry_run())
+        run_async_command(_dry_run())
     else:
-        asyncio.run(_run())
+        run_async_command(_run())
 
 
 def _show_dry_run(activity_id: int, duration: int) -> None:

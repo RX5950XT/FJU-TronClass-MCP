@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 from pathlib import Path
 
 import typer
@@ -10,7 +9,7 @@ from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn, TimeElapsedColumn
 from rich.table import Table
 
-from fju_tronclass.cli._helpers import build_client
+from fju_tronclass.cli._helpers import build_client, run_async_command
 
 app = typer.Typer(help="教材下載相關操作。")
 console = Console()
@@ -49,7 +48,7 @@ def download_upload_cmd(
         console.print(f"[green]✓[/green] 下載完成：{file_path}")
         console.print(f"  大小：{size_mb:.2f} MB")
 
-    asyncio.run(_run())
+    run_async_command(_run())
 
 
 @app.command("search")
@@ -131,5 +130,4 @@ def search_and_download_cmd(
                         progress.update(task, completed=True)
                         console.print(f"  [red]✗[/red] {r.upload_name}：{exc}")
 
-    asyncio.run(_run())
-
+    run_async_command(_run())

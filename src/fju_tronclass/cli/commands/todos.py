@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-import asyncio
-
 import typer
 from rich.console import Console
 from rich.table import Table
 
-from fju_tronclass.cli._helpers import build_client
+from fju_tronclass.cli._helpers import build_client, run_async_command
 
 app = typer.Typer(help="待辦事項相關操作。")
 console = Console()
@@ -45,4 +43,4 @@ def list_todos(
         console.print(table)
         console.print(f"共 [bold]{len(todos)}[/bold] 筆")
 
-    asyncio.run(_run())
+    run_async_command(_run())
