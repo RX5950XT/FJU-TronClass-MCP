@@ -38,7 +38,7 @@ TronClass 使用 CAS + CAPTCHA 登入，需先取得 session cookie：
 3. 複製 **session** 欄位的值（以 `V2-` 開頭）
 4. 執行：
    ```powershell
-   uv run fjumcp login
+   uv run fjumcp login cookie
    ```
    並貼上 cookie 值，確認後會儲存至 Windows Credential Manager。
 
@@ -54,6 +54,9 @@ TRONCLASS_SESSION_COOKIE=V2-你的cookie值
 ```powershell
 # 驗證連線
 uv run fjumcp whoami
+
+# 查看所有可用指令
+uv run fjumcp --help
 
 # 列出課程（學期格式：114-2、114-1、113-2…）
 uv run fjumcp courses list
@@ -90,6 +93,28 @@ uv run fjumcp video batch-complete <course_id>
 uv run fjumcp serve
 # 或
 uv run python -m fju_tronclass
+
+# 登入 / 登出
+uv run fjumcp login cookie
+uv run fjumcp login logout
+```
+
+## 目前可用指令
+
+```text
+fjumcp
+├── whoami
+├── serve
+├── courses list
+├── todos list
+├── bulletins list
+├── activities list
+├── download upload
+├── download search
+├── video mark-complete
+├── video batch-complete
+├── login cookie
+└── login logout
 ```
 
 ## Claude Desktop / Claude Code 設定
