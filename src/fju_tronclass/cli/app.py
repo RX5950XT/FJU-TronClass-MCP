@@ -34,7 +34,7 @@ def whoami(
     from fju_tronclass.auth.session_probe import probe_session
     from fju_tronclass.client.http import TronClassHttp
     from fju_tronclass.config import get_settings
-    from fju_tronclass.errors import AuthError, SessionExpiredError
+    from fju_tronclass.errors import AuthError, ServerError, SessionExpiredError
 
     console = Console()
     settings = get_settings()
@@ -58,6 +58,9 @@ def whoami(
             console.print(f"Base URL: {settings.tronclass_base_url}")
     except SessionExpiredError:
         console.print("[red]Session 已過期，請執行 `fjumcp login` 重新登入。[/red]")
+        raise typer.Exit(1) from None
+    except ServerError as e:
+        console.print(f"[red]連線失敗：{e}[/red]")
         raise typer.Exit(1) from None
 
 

@@ -30,7 +30,7 @@ def _cookie_login() -> None:
     from fju_tronclass.auth.session_probe import probe_session
     from fju_tronclass.client.http import TronClassHttp
     from fju_tronclass.config import get_settings
-    from fju_tronclass.errors import SessionExpiredError
+    from fju_tronclass.errors import ServerError, SessionExpiredError
 
     console.print("[bold]輔大 TronClass — Cookie 登入[/bold]")
     console.print("1. 在瀏覽器登入 https://elearn2.fju.edu.tw/")
@@ -59,6 +59,9 @@ def _cookie_login() -> None:
         console.print("Cookie 已儲存至 Windows Credential Manager。")
     except SessionExpiredError:
         console.print("[red]Cookie 無效或已過期，請重新複製。[/red]")
+        raise typer.Exit(1) from None
+    except ServerError as e:
+        console.print(f"[red]連線失敗：{e}[/red]")
         raise typer.Exit(1) from None
 
 

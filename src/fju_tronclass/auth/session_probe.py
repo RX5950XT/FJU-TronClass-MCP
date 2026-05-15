@@ -17,6 +17,7 @@ async def probe_session(http_client: object) -> int:
 
     Raises:
         SessionExpiredError: session 已過期或無效
+        Exception: 其他網路或伺服器錯誤原樣向上拋出，避免誤判為 session 過期
     """
     from fju_tronclass.client.tronclass import TronClassClient
 
@@ -28,6 +29,5 @@ async def probe_session(http_client: object) -> int:
         return count
     except SessionExpiredError:
         raise
-    except Exception as e:
-        logger.warning("Session probe 失敗", error=str(e))
-        raise SessionExpiredError() from e
+    except Exception:
+        raise

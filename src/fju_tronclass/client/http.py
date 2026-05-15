@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ssl
 from pathlib import Path
 from typing import Any
 
@@ -18,6 +19,11 @@ from fju_tronclass.logging import get_logger
 
 logger = get_logger(__name__)
 
+try:
+    import truststore
+except ImportError:
+    truststore = None  # type: ignore[assignment]
+
 _DEFAULT_BASE_URL = "https://elearn2.fju.edu.tw"
 _DEFAULT_TIMEOUT = 30.0
 _MAX_RETRIES = 3
@@ -25,6 +31,20 @@ _MAX_RETRIES = 3
 
 def _is_server_error(exc: BaseException) -> bool:
     return isinstance(exc, ServerError)
+
+
+def _build_ssl_context() -> ssl.SSLContext:
+    """
+    優先使用系統 trust store，避免 certifi 與校內憑證鏈不相容。
+
+    若 truststore 初始化失敗，退回 Python 預設 SSL context。
+    """
+    if truststore is None:
+        return ssl.create_default_context()
+    try:
+        return truststore.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+    except Exception:
+        return ssl.create_default_context()
 
 
 class TronClassHttp:
@@ -44,6 +64,7 @@ class TronClassHttp:
             base_url=self._base_url,
             cookies={"session": session_cookie},
             timeout=_DEFAULT_TIMEOUT,
+            verify=_build_ssl_context(),
             headers={
                 "User-Agent": "fju-tronclass-mcp/0.1",
                 "Accept": "application/json",
