@@ -74,7 +74,11 @@ src/fju_tronclass/
 - `Activity.name`、`Activity.completeness`、`Activity.completenessTip` 可為 `null`
 - `Todo.due_time` 對應 API 的 `end_time`（alias）
 - `post_activity_read` 每次 end-start 不可超過 125 秒（伺服器限制）
-- Cookie 優先順序：環境變數 > `.env` 檔 > Windows Credential Manager
+- Cookie 優先順序：keyring（Windows Credential Manager）> 環境變數 / `.env`
+- Session 效期 24 小時滑動；伺服器每次回應 rotate cookie，`TronClassHttp.session_cookie` 追蹤最新值，CLI/MCP 的 client factory 在成功結束時自動存回 keyring（持續使用即持續延長）
+- Session 過期實測回 401；cookie 非 HttpOnly，可從已登入瀏覽器的 `document.cookie` 取得
+- API 呼叫維持 `follow_redirects=False`：被 302 導向登入頁 = session 過期（映射為 `SessionExpiredError`）；`stream_download` 例外，per-request 跟隨 redirect 到 CDN
+- session cookie 已綁定 base_url host domain，不會送往外部下載主機
 
 ## 測試策略
 

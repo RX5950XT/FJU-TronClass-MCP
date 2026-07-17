@@ -8,7 +8,7 @@
 - MCP Server：讓 Claude Desktop / Claude Code 直接操作 TronClass
 
 如果你只是想自己用，通常只要會用 `fjumcp` 就夠了。
-如果你是拿來給 agent 用，專案裡也有配套的 [skills\SKILL.md](D:\Workspace_cloud\Personal_Project\FJU-TronClass-MCP\skills\SKILL.md)，讓 agent 知道該怎麼登入、查資料、下載教材。
+如果你是拿來給 agent 用，專案裡也有配套的 [skills/SKILL.md](skills/SKILL.md)，讓 agent 知道該怎麼登入、查資料、下載教材。
 
 ## 這個工具可以做什麼
 
@@ -66,8 +66,10 @@ fjumcp login cookie
 TRONCLASS_SESSION_COOKIE=V2-你的cookie值
 ```
 
-注意：`session cookie` 不是永久有效，會隨時間失效。
-如果你重新登入 TronClass、太久沒用，或伺服器那邊更新 session，舊 cookie 就可能不能用了。
+注意：`session cookie` 效期是 24 小時「滑動制」。
+伺服器每次回應都會換發新 cookie 延長 24 小時，本工具會自動把新值存回 Credential Manager——
+所以只要 24 小時內有用過一次（CLI 或 MCP），session 就會一直有效；閒置超過一天才需要重新登入。
+`.env` 裡的 cookie 是靜態的、不會自動更新，只建議當備援，平常以 `fjumcp login cookie` 存進 Credential Manager 為主。
 
 ## 3. 先確認有沒有連上
 
@@ -199,16 +201,16 @@ python -m fju_tronclass
         "--directory", "/path/to/FJU-TronClass-MCP",
         "run",
         "python", "-m", "fju_tronclass"
-      ],
-      "env": {
-        "TRONCLASS_SESSION_COOKIE": "V2-你的cookie值"
-      }
+      ]
     }
   }
 }
 ```
 
 把 `/path/to/FJU-TronClass-MCP` 換成你實際的專案路徑。
+
+已用 `fjumcp login cookie` 登入過的話，cookie 直接從 Credential Manager 讀取，不需要另外設定。
+若想改用環境變數，可在 `env` 加入 `TRONCLASS_SESSION_COOKIE`（但靜態值不會自動延長，不建議）。
 
 ### Claude Code 設定
 
@@ -245,7 +247,7 @@ uv run mypy src/
 ## 注意事項
 
 - 這個工具只適合拿來管理你自己的 TronClass 帳號
-- `session cookie` 會過期，失效時請重新從瀏覽器抓新的 `session`
+- `session cookie` 效期為 24 小時滑動；有在用就會自動延長，閒置超過一天失效後請重新從瀏覽器抓新的 `session`
 - `video mark-complete` / `video batch-complete` 會直接更新觀看進度，請自己評估風險
 - 下載下來的教材請只作個人學習使用，不要散布
 
