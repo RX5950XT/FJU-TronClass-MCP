@@ -60,9 +60,12 @@ class TronClassHttp:
     ) -> None:
         self._base_url = base_url.rstrip("/")
         self._session_cookie = session_cookie
+        # 綁定 domain，避免 session cookie 被送往外部下載主機（如 CDN）
+        cookies = httpx.Cookies()
+        cookies.set("session", session_cookie, domain=httpx.URL(self._base_url).host)
         self._client = httpx.AsyncClient(
             base_url=self._base_url,
-            cookies={"session": session_cookie},
+            cookies=cookies,
             timeout=_DEFAULT_TIMEOUT,
             verify=_build_ssl_context(),
             headers={
@@ -71,6 +74,11 @@ class TronClassHttp:
             },
             follow_redirects=False,
         )
+
+    @property
+    def session_cookie(self) -> str:
+        """目前有效的 session cookie。伺服器會在回應中 rotate，此值可能與建構時不同。"""
+        return self._session_cookie
 
     async def get_json(
         self,
@@ -94,9 +102,12 @@ class TronClassHttp:
         dest.parent.mkdir(parents=True, exist_ok=True)
         logger.info("開始下載", url=url, dest=str(dest))
         try:
-            async with self._client.stream("GET", url) as response:
+            # 下載 URL 可能 302 導向 CDN，需跟隨 redirect（API 呼叫則維持不跟隨以偵測 session 過期）
+            async with self._client.stream("GET", url, follow_redirects=True) as response:
                 if response.status_code == 403:
                     raise DownloadError(f"下載 URL 已過期或無授權（403）：{url}")
+                if response.status_code >= 400:
+                    await response.aread()  # stream 需先讀取內容，錯誤訊息才可解析
                 _raise_for_status(response)
                 written = 0
                 with open(dest, "wb") as f:
@@ -143,6 +154,11 @@ class TronClassHttp:
             logger.warning("網路請求失敗", method=method, path=path, error=str(e))
             raise ServerError(0, str(e)) from e
 
+        # 伺服器可能 rotate session cookie（Set-Cookie），記下最新值供呼叫端持久化
+        rotated = response.cookies.get("session")
+        if rotated:
+            self._session_cookie = rotated
+
         _raise_for_status(response)
         return response.json()
 
@@ -150,6 +166,9 @@ class TronClassHttp:
 def _raise_for_status(response: httpx.Response) -> None:
     """將 HTTP 錯誤狀態碼映射為自訂例外。"""
     if response.status_code == 401:
+        raise SessionExpiredError()
+    # API 端點正常不會 redirect；被 302 導向登入頁即代表 session 失效
+    if response.is_redirect:
         raise SessionExpiredError()
     if 400 <= response.status_code < 500:
         try:

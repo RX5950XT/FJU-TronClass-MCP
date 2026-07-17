@@ -20,15 +20,15 @@ def _make_result(completeness: int = 100) -> ActivityReadResult:
 @pytest.mark.parametrize(
     "duration, expected_calls",
     [
-        (0, 0),       # 0 秒無需呼叫
-        (30, 1),      # 短影片一段
-        (90, 1),      # 恰好 90s
-        (91, 2),      # 90 + 1
-        (125, 2),     # 90 + 35
-        (177, 2),     # 90 + 87
-        (180, 2),     # 90 + 90
-        (181, 3),     # 90 + 90 + 1
-        (1000, 12),   # 11*90 + 10 = 12 段
+        (0, 0),  # 0 秒無需呼叫
+        (30, 1),  # 短影片一段
+        (90, 1),  # 恰好 90s
+        (91, 2),  # 90 + 1
+        (125, 2),  # 90 + 35
+        (177, 2),  # 90 + 87
+        (180, 2),  # 90 + 90
+        (181, 3),  # 90 + 90 + 1
+        (1000, 12),  # 11*90 + 10 = 12 段
     ],
 )
 async def test_chunking_call_count(duration: int, expected_calls: int) -> None:

@@ -11,6 +11,7 @@ from fju_tronclass.errors import ClientError, DownloadError, ServerError
 @pytest.fixture
 def client(fake_cookie: str, base_url: str):  # type: ignore[no-untyped-def]
     from fju_tronclass.client.http import TronClassHttp
+
     return TronClassHttp(session_cookie=fake_cookie, base_url=base_url)
 
 
@@ -89,6 +90,4 @@ async def test_stream_download_request_error(
         url="https://media.example.com/file.pdf",
     )
     with pytest.raises(DownloadError):
-        await client.stream_download(
-            "https://media.example.com/file.pdf", tmp_path / "file.pdf"
-        )
+        await client.stream_download("https://media.example.com/file.pdf", tmp_path / "file.pdf")

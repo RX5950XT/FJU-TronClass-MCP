@@ -12,6 +12,7 @@ from tests.conftest import load_fixture
 def client(fake_cookie: str, base_url: str):  # type: ignore[no-untyped-def]
     from fju_tronclass.client.http import TronClassHttp
     from fju_tronclass.client.tronclass import TronClassClient
+
     return TronClassClient(TronClassHttp(session_cookie=fake_cookie, base_url=base_url))
 
 

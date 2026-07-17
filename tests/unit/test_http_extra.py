@@ -11,6 +11,7 @@ from fju_tronclass.errors import DownloadError
 @pytest.fixture
 def client(fake_cookie: str, base_url: str):  # type: ignore[no-untyped-def]
     from fju_tronclass.client.http import TronClassHttp
+
     return TronClassHttp(session_cookie=fake_cookie, base_url=base_url)
 
 

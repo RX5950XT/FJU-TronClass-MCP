@@ -3,14 +3,14 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, Coroutine
 from contextlib import asynccontextmanager
-from typing import Awaitable
+from typing import Any
 
 import typer
 from rich.console import Console
 
-from fju_tronclass.auth.cookie_store import load_cookie
+from fju_tronclass.auth.cookie_store import load_cookie, save_cookie
 from fju_tronclass.client.http import TronClassHttp
 from fju_tronclass.client.tronclass import TronClassClient
 from fju_tronclass.config import get_settings
@@ -31,12 +31,15 @@ async def build_client() -> AsyncGenerator[TronClassClient, None]:
     settings = get_settings()
     async with TronClassHttp(session_cookie=cookie, base_url=settings.tronclass_base_url) as http:
         yield TronClassClient(http)
+        # 伺服器會 rotate session cookie；成功結束時存回，session 才能持續滑動延長
+        if http.session_cookie != cookie:
+            save_cookie(http.session_cookie)
 
 
-def run_async_command(awaitable: Awaitable[None]) -> None:
+def run_async_command(coro: Coroutine[Any, Any, None]) -> None:
     """統一執行 async CLI command，將已知錯誤轉為友善訊息。"""
     try:
-        asyncio.run(awaitable)
+        asyncio.run(coro)
     except SessionExpiredError:
         console.print("[red]Session 已過期，請執行 `fjumcp login` 重新登入。[/red]")
         raise typer.Exit(1) from None

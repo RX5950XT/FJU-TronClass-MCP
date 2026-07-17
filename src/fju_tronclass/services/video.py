@@ -105,7 +105,8 @@ async def mark_all_videos_in_course(
     activities = await client.get_course_activities(course_id)  # type: ignore[attr-defined]
 
     video_activities = [
-        a for a in activities
+        a
+        for a in activities
         if a.is_video and a.video_duration is not None and a.video_duration > 0
     ]
 

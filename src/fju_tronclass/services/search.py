@@ -61,9 +61,7 @@ async def search_uploads_by_keyword(
         all_courses = await client.get_my_courses()  # type: ignore[attr-defined]
         courses = [(c.id, c.name) for c in all_courses]
     else:
-        raise ValueError(
-            "必須提供 course_id，或設定 include_all_courses=True 搜尋全部課程"
-        )
+        raise ValueError("必須提供 course_id，或設定 include_all_courses=True 搜尋全部課程")
 
     for cid, cname in courses:
         try:
@@ -73,9 +71,7 @@ async def search_uploads_by_keyword(
             continue
 
         for act in activities:
-            results.extend(
-                _match_activity(act, kw_lower, cid, cname)
-            )
+            results.extend(_match_activity(act, kw_lower, cid, cname))
 
     results.sort(key=lambda r: (r.course_id, r.activity_id))
     logger.info(

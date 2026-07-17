@@ -45,7 +45,7 @@ class Activity(BaseModel):
 
     id: int
     name: str | None = None  # 教材類型使用 name 欄位（可為 null）
-    title: str = ""           # 影片/活動標題
+    title: str = ""  # 影片/活動標題
     type: str = ""
     completeness: int | None = None
     completeness_tip: str | None = Field(default=None, alias="completenessTip")

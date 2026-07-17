@@ -34,7 +34,9 @@ class Course(BaseModel):
             real_name = sem.get("real_name", "")
             data = {
                 **data,
-                "semester": f"{ay_name}-{real_name}" if ay_name and real_name else sem.get("name", ""),
+                "semester": f"{ay_name}-{real_name}"
+                if ay_name and real_name
+                else sem.get("name", ""),
             }
 
         # instructors: [{"name": "吳至原"}] → teacher_name

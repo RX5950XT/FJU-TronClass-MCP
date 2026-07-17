@@ -11,18 +11,21 @@ from fju_tronclass.errors import SchemaError
 @pytest.fixture
 def http(fake_cookie: str, base_url: str):  # type: ignore[no-untyped-def]
     from fju_tronclass.client.http import TronClassHttp
+
     return TronClassHttp(session_cookie=fake_cookie, base_url=base_url)
 
 
 @pytest.fixture
 def client(http):  # type: ignore[no-untyped-def]
     from fju_tronclass.client.tronclass import TronClassClient
+
     return TronClassClient(http=http)
 
 
 # ------------------------------------------------------------------ #
 # SchemaError：各 endpoint 回傳無法解析的 JSON 時應包裝為 SchemaError
 # ------------------------------------------------------------------ #
+
 
 @pytest.mark.asyncio
 async def test_get_my_courses_schema_error(
@@ -121,6 +124,7 @@ async def test_get_learning_activity_success(
         },
     )
     from fju_tronclass.models.activity import Activity
+
     result = await client.get_learning_activity(10, 20)
     assert isinstance(result, Activity)
     assert result.id == 20
@@ -144,9 +148,7 @@ async def test_post_activity_read_raises_value_error_when_chunk_too_large(
     client,  # type: ignore[no-untyped-def]
 ) -> None:
     with pytest.raises(ValueError, match="125"):
-        await client.post_activity_read(
-            activity_id=1, start=0, end=126, duration=300
-        )
+        await client.post_activity_read(activity_id=1, start=0, end=126, duration=300)
 
 
 @pytest.mark.asyncio
@@ -161,6 +163,4 @@ async def test_post_activity_read_schema_error(
         json={"completeness": "full", "data": "not-a-dict"},
     )
     with pytest.raises(SchemaError):
-        await client.post_activity_read(
-            activity_id=1, start=0, end=90, duration=300
-        )
+        await client.post_activity_read(activity_id=1, start=0, end=90, duration=300)

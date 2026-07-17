@@ -36,10 +36,7 @@ async def fju_list_course_activities(course_id: int) -> list[dict]:  # type: ign
             "type": a.type,
             "is_complete": a.is_complete,
             "video_duration": a.video_duration,
-            "uploads": [
-                {"id": u.id, "name": u.name, "size_bytes": u.size}
-                for u in a.uploads
-            ],
+            "uploads": [{"id": u.id, "name": u.name, "size_bytes": u.size} for u in a.uploads],
         }
         for a in activities
     ]

@@ -32,6 +32,7 @@ def _load_activities() -> list[Activity]:
 
 def _make_ctx(client: AsyncMock):  # type: ignore[no-untyped-def]
     """Build a mock async context manager for get_client()."""
+
     @asynccontextmanager
     async def _ctx() -> AsyncGenerator[AsyncMock, None]:
         yield client
@@ -43,6 +44,7 @@ def _make_ctx(client: AsyncMock):  # type: ignore[no-untyped-def]
 # activity_tools
 # ------------------------------------------------------------------ #
 
+
 @pytest.mark.asyncio
 async def test_fju_list_course_activities_returns_summary() -> None:
     from fju_tronclass.mcp_server.tools.activity_tools import fju_list_course_activities
@@ -51,9 +53,7 @@ async def test_fju_list_course_activities_returns_summary() -> None:
     client = AsyncMock()
     client.get_course_activities.return_value = activities
 
-    with patch(
-        "fju_tronclass.mcp_server._client_factory.get_client", _make_ctx(client)
-    ):
+    with patch("fju_tronclass.mcp_server._client_factory.get_client", _make_ctx(client)):
         result = await fju_list_course_activities(course_id=10001)
 
     assert len(result) == 4
@@ -123,8 +123,11 @@ async def test_fju_batch_mark_videos_complete_returns_summary() -> None:
 
     video_results = [
         VideoMarkResult(
-            activity_id=40004, activity_name="課程影片2", duration=1200,
-            completeness_pct=100, success=True
+            activity_id=40004,
+            activity_name="課程影片2",
+            duration=1200,
+            completeness_pct=100,
+            success=True,
         ),
     ]
     client = AsyncMock()
@@ -147,6 +150,7 @@ async def test_fju_batch_mark_videos_complete_returns_summary() -> None:
 # ------------------------------------------------------------------ #
 # course_tools
 # ------------------------------------------------------------------ #
+
 
 @pytest.mark.asyncio
 async def test_fju_list_courses_returns_list() -> None:
@@ -188,6 +192,7 @@ async def test_fju_list_courses_filters_by_semester() -> None:
 # todo_tools
 # ------------------------------------------------------------------ #
 
+
 @pytest.mark.asyncio
 async def test_fju_list_todos_excludes_done_by_default() -> None:
     from fju_tronclass.mcp_server.tools.todo_tools import fju_list_todos
@@ -227,13 +232,13 @@ async def test_fju_list_todos_includes_done_when_flag_set() -> None:
 # bulletin_tools
 # ------------------------------------------------------------------ #
 
+
 @pytest.mark.asyncio
 async def test_fju_list_course_bulletins_returns_limited() -> None:
     from fju_tronclass.mcp_server.tools.bulletin_tools import fju_list_course_bulletins
 
     bulletins = [
-        Bulletin(id=i, title=f"公告{i}", content=f"內容{i}", course_id=10001)
-        for i in range(1, 6)
+        Bulletin(id=i, title=f"公告{i}", content=f"內容{i}", course_id=10001) for i in range(1, 6)
     ]
     client = AsyncMock()
     client.get_course_bulletins.return_value = bulletins
@@ -247,6 +252,7 @@ async def test_fju_list_course_bulletins_returns_limited() -> None:
 # ------------------------------------------------------------------ #
 # download_tools
 # ------------------------------------------------------------------ #
+
 
 @pytest.mark.asyncio
 async def test_fju_download_upload_returns_path_and_size() -> None:
@@ -271,6 +277,7 @@ async def test_fju_download_upload_returns_path_and_size() -> None:
 # ------------------------------------------------------------------ #
 # video_tools
 # ------------------------------------------------------------------ #
+
 
 @pytest.mark.asyncio
 async def test_fju_mark_video_complete_success() -> None:

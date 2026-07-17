@@ -47,7 +47,9 @@ def mark_complete_cmd(
 @app.command("batch-complete")
 def batch_complete_cmd(
     course_id: int = typer.Argument(..., help="課程 ID（從 fjumcp courses list 取得）"),
-    include_completed: bool = typer.Option(False, "--include-completed", help="包含已完成的影片（重新標記）"),
+    include_completed: bool = typer.Option(
+        False, "--include-completed", help="包含已完成的影片（重新標記）"
+    ),
     dry_run: bool = typer.Option(False, "--dry-run", help="只顯示會處理的影片，不實際呼叫 API"),
 ) -> None:
     """
@@ -65,7 +67,8 @@ def batch_complete_cmd(
             activities = await client.get_course_activities(course_id)
 
         videos: list[Activity] = [
-            a for a in activities
+            a
+            for a in activities
             if a.is_video and a.video_duration is not None and a.video_duration > 0
         ]
         pending = [a for a in videos if not a.is_complete] if not include_completed else videos
@@ -102,8 +105,13 @@ def batch_complete_cmd(
 
         for r in results:
             status = "[green]✓[/green]" if r.success else f"[red]✗ {r.error}[/red]"
-            table.add_row(str(r.activity_id), r.activity_name, f"{r.duration}s",
-                          f"{r.completeness_pct}%", status)
+            table.add_row(
+                str(r.activity_id),
+                r.activity_name,
+                f"{r.duration}s",
+                f"{r.completeness_pct}%",
+                status,
+            )
 
         console.print(table)
         success = sum(1 for r in results if r.success)

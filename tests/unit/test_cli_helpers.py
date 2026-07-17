@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from click.exceptions import Exit
 import pytest
+from click.exceptions import Exit
 
 from fju_tronclass.errors import ClientError, SessionExpiredError
 

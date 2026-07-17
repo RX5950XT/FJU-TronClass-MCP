@@ -125,7 +125,9 @@ def search_and_download_cmd(
                         )
                         progress.update(task, completed=True)
                         size_mb = size / 1_048_576
-                        console.print(f"  [green]✓[/green] {r.upload_name} → {file_path} ({size_mb:.2f} MB)")
+                        console.print(
+                            f"  [green]✓[/green] {r.upload_name} → {file_path} ({size_mb:.2f} MB)"
+                        )
                     except Exception as exc:
                         progress.update(task, completed=True)
                         console.print(f"  [red]✗[/red] {r.upload_name}：{exc}")

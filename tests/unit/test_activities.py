@@ -85,6 +85,7 @@ def test_activity_upload_fields() -> None:
 # search service 測試
 # ------------------------------------------------------------------ #
 
+
 def _make_activities_client() -> AsyncMock:
     activities = _load_activities()
     client = AsyncMock()
@@ -167,9 +168,7 @@ async def test_search_all_courses(monkeypatch: pytest.MonkeyPatch) -> None:
     client.get_my_courses.return_value = [Course(id=10001, name="資料結構", semester="113-2")]
     client.get_course_activities.return_value = activities
 
-    results = await search_uploads_by_keyword(
-        client, "第一週", include_all_courses=True
-    )
+    results = await search_uploads_by_keyword(client, "第一週", include_all_courses=True)
     assert len(results) >= 1
     client.get_my_courses.assert_called_once()
 
@@ -198,10 +197,12 @@ async def test_search_skips_course_on_exception() -> None:
 # batch video service 測試
 # ------------------------------------------------------------------ #
 
+
 def _make_video_client(activities: list[Activity]) -> AsyncMock:
     client = AsyncMock()
     client.get_course_activities.return_value = activities
     from fju_tronclass.models.activity import ActivityReadRanges, ActivityReadResult
+
     client.post_activity_read.return_value = ActivityReadResult(
         completeness="full",
         data=ActivityReadRanges(completeness=100),

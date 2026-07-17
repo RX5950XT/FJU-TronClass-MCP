@@ -27,6 +27,7 @@ def _make_bulletin(bulletin_id: int, course_id: int = 10) -> Bulletin:
 # courses
 # ------------------------------------------------------------------ #
 
+
 @pytest.mark.asyncio
 async def test_list_courses_no_filter() -> None:
     from fju_tronclass.services.courses import list_courses
@@ -58,6 +59,7 @@ async def test_list_courses_filters_by_semester() -> None:
 # todos
 # ------------------------------------------------------------------ #
 
+
 @pytest.mark.asyncio
 async def test_list_todos_excludes_done_by_default() -> None:
     from fju_tronclass.services.todos import list_todos
@@ -88,6 +90,7 @@ async def test_list_todos_include_done() -> None:
 # ------------------------------------------------------------------ #
 # bulletins
 # ------------------------------------------------------------------ #
+
 
 @pytest.mark.asyncio
 async def test_list_bulletins_returns_limited() -> None:

@@ -60,8 +60,8 @@ async def test_download_upload_returns_correct_path(
         ('含<>:"/\\|?*的檔名.pdf', "含_________的檔名.pdf"),
         ("a" * 250 + ".pdf", "a" * 196 + ".pdf"),  # 截斷至 200 字（含副檔名 4 字）
         ("  空白前後  .pdf", "空白前後.pdf"),
-        ("Makefile", "Makefile"),               # 無副檔名（dot_idx <= 0）
-        (".gitignore", ".gitignore"),           # 以點開頭，dot_idx == 0 → 無副檔名分支
+        ("Makefile", "Makefile"),  # 無副檔名（dot_idx <= 0）
+        (".gitignore", ".gitignore"),  # 以點開頭，dot_idx == 0 → 無副檔名分支
     ],
 )
 def test_safe_filename(input_name: str, expected: str) -> None:
