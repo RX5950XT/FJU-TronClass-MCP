@@ -1,193 +1,133 @@
 ---
 name: fju-tronclass-mcp
-description: 操作輔仁大學 TronClass MCP Server 與 CLI（fjumcp）的完整指引：課程查詢、教材下載、公告瀏覽、影片標記。觸發時機：使用者提到 TronClass、輔大課程、fjumcp、下載教材、影片完成。
-version: 1.1.0
+description: 操作輔仁大學 TronClass 的 fjumcp CLI：課程、待辦、公告、教材下載、分組名單、作業、成績組成、討論區、影片標記。觸發：TronClass、輔大課程、fjumcp、下載教材、分組、影片完成。
+version: 1.2.0
 ---
 
-# FJU TronClass MCP — 操作技能
+# FJU TronClass — Agent 操作手冊
 
-這個 skill 是給 agent 用的配套操作手冊。
-當任務和輔大 TronClass、`fjumcp`、教材下載、待辦查詢、影片完成標記有關時，優先依這份 skill 操作。
+任務碰到輔大 TronClass、`fjumcp`、教材、待辦、分組、作業、討論、影片完成時，依這份操作。
 
-執行 CLI 前先確認認證可用：
+先確認 session：
+
 ```bash
 fjumcp whoami
 ```
 
+所有 `list` / `show` 幾乎都有 `--json`，agent 優先加 `--json` 再解析。
+
 ---
 
-## 認證設定
+## 認證
 
-Cookie 儲存優先順序（與程式碼一致）：
-1. keyring（Windows Credential Manager / 系統密鑰環）
-2. 本機檔案：`~/.config/fju-tronclass/session`（0600；Linux / WSL 主力）
-3. 環境變數 / 專案 `.env`：`TRONCLASS_SESSION_COOKIE=V2-...`（靜態，不會 rotate）
+優先順序（與程式碼一致）：
 
-**寫入 cookie（非互動，給 agent）：**
+1. keyring（Windows Credential Manager）
+2. `~/.config/fju-tronclass/session`（0600；Linux / WSL 主力）
+3. 環境變數 / 專案 `.env`：`TRONCLASS_SESSION_COOKIE`（靜態，不會 rotate）
+
 ```bash
 fjumcp login --cookie 'V2-...'
-# 或 stdin
 printf '%s' "$TRONCLASS_SESSION_COOKIE" | fjumcp login
-```
-
-**取得 Cookie**：瀏覽器登入 https://elearn2.fju.edu.tw → F12 → Application → Cookies → 複製 `session` 欄位（`V2-` 開頭）
-
-Session 是 24 小時滑動制。`whoami` / `keepalive` / 一般 CLI 成功時會自動把 rotate 後的新值寫回。閒置超過一天才需要重新登入。
-
-保活：
-```bash
 fjumcp keepalive          # 成功安靜、失敗非零
 ```
 
+Cookie 從 https://elearn2.fju.edu.tw → F12 → Application → Cookies → `session`（`V2-` 開頭）。
+
+24 小時滑動制：每次成功 API 會 rotate 並寫回。閒置超過一天要重新登入。不要把 cookie 寫進 git / skill / README。
+
 ---
 
-## CLI 完整指令
+## CLI
 
-### 連線驗證
-
-```bash
-fjumcp whoami
-# 輸出：已連線 — 本學期共 N 門課程
-fjumcp whoami -v          # 含到期時間
-fjumcp keepalive          # 排程用
+```text
+fjumcp
+├── whoami [-q] [-v]
+├── keepalive [-v]
+├── profile [--json]
+├── digest [--semester] [--json]
+├── courses list [--semester] [--json]
+├── courses show|outline|modules <course_id>
+├── todos list [--include-done] [--json]
+├── bulletins list <course_id> [--full] [--json]
+├── activities list <course_id> [--type T] [--videos] [--materials] [--json]
+├── activities show <activity_id>
+├── download upload <upload_id> [--dest]
+├── download search "關鍵字" --course ID | --all [--dry-run]
+├── download course <course_id> [--dry-run]
+├── download semester 114-2 [--dry-run]
+├── people list <course_id> [--role student|instructor] [--json]
+├── groups list <course_id> [--json]
+├── homework list|show
+├── scores list <course_id>
+├── exams list <course_id>
+├── forums topics <forum_activity_id>
+├── forums topic <topic_id>
+├── video mark-complete / batch-complete   # 先 --dry-run
+├── login [--cookie V2-...]
+└── serve
 ```
 
-### 課程查詢
+`course_id` 一律先從 `fjumcp courses list` 拿。
+
+活動 `type`：`material` / `online_video` / `homework` / `forum` / `web_link` / `page`
+
+---
+
+## 工作流程
+
+### 查分組（互評看每組成員）
 
 ```bash
-# 列出所有課程（含歷史學期）
-fjumcp courses list
-
-# 過濾特定學期（格式：學年-學期，如 114-2、115-1）
-fjumcp courses list --semester 114-2
+fjumcp courses list --semester 114-2 --json
+fjumcp groups list <course_id> --json
 ```
 
-**輸出欄位**：`ID | 課程名稱 | 代碼 | 學期 | 授課教師`
-→ 記住 `ID` 欄位，後續所有指令都需要 `course_id`
+用官方 `students.group_ids` 聚合，不掃 group ID。看得到全班誰在哪一組；看不到別組交的作業檔。
 
-### 待辦事項
-
-```bash
-fjumcp todos list               # 只列未完成
-fjumcp todos list --include-done  # 含已完成
-```
-
-### 課程公告
-
-```bash
-fjumcp bulletins list <course_id>
-```
-
-### 課程活動（教材與影片）
-
-```bash
-# 列出課程所有活動，附件清單會顯示 upload ID
-fjumcp activities list <course_id>
-
-# 只顯示影片類型
-fjumcp activities list <course_id> --videos
-
-# 只顯示教材類型
-fjumcp activities list <course_id> --materials
-```
-
-**輸出說明**：
-- `type=教材`：有「upload ID」→ 用於 `download upload`
-- `type=影片`：有「activity ID + 時長」→ 用於 `video mark-complete`
+114-2 有分組：電子學(二) `374430`、人生哲學 `378195`。115-1 尚未進課表。
 
 ### 下載教材
 
 ```bash
-# 用 upload ID 直接下載（從 activities list 取得）
-fjumcp download upload <upload_id>
-fjumcp download upload <upload_id> --dest ~/Downloads/TronClass
-
-# 用關鍵字搜尋後下載（不需要知道 ID）
-fjumcp download search "關鍵字" --course <course_id>
-fjumcp download search "關鍵字" --all          # 跨所有課程搜尋
-fjumcp download search "關鍵字" --all --dry-run  # 預覽，不實際下載
+fjumcp download course <course_id> --dry-run
+fjumcp download semester 114-2 --dry-run
+fjumcp download search "講義" --course <course_id> --dry-run
 ```
 
-### 影片完成標記
+### 討論 / 作業說明
 
 ```bash
-# 標記單支影片（先用 dry-run 確認）
-fjumcp video mark-complete <activity_id> <duration_seconds> --dry-run
-fjumcp video mark-complete <activity_id> <duration_seconds>
+fjumcp activities list <course_id> --type forum --json
+fjumcp forums topics <activity_id> --json
+fjumcp forums topic <topic_id>
+fjumcp homework show <homework_id>
+```
 
-# 批次標記課程中所有影片
-fjumcp video batch-complete <course_id> --dry-run
-fjumcp video batch-complete <course_id>
-fjumcp video batch-complete <course_id> --include-completed  # 含已完成
+### 待辦與摘要
+
+```bash
+fjumcp digest
+fjumcp todos list --json
 ```
 
 ---
 
-## 常見工作流程
+## 禁止
 
-### 工作流程 A：下載特定課程的所有教材
+- 不要把 cookie 寫進 git / README / skill
+- 不要做 group ID 暴力掃描、不要打別組 submission
+- 不要代繳作業、改成績、代發討論
+- `video mark-complete` 先 `--dry-run`
+- Hermes 本體走 CLI，不要 `hermes mcp add`
 
-```bash
-# 1. 找到 course_id
-fjumcp courses list --semester 114-2
-
-# 2. 查看該課程的活動和 upload ID
-fjumcp activities list <course_id>
-
-# 3. 下載需要的 upload
-fjumcp download upload <upload_id> --dest ~/Downloads
-```
-
-### 工作流程 B：關鍵字搜尋下載
-
-```bash
-# 不知道 ID，只知道檔案名稱關鍵字
-fjumcp download search "期中" --course <course_id>
-fjumcp download search "講義" --all --dry-run  # 先 dry-run 確認
-```
-
-### 工作流程 C：查看所有課程待辦
-
-```bash
-fjumcp todos list  # 列出所有未繳交的作業，含截止時間
-```
+學生權限沒有：inbox、calendar、notifications、點名明細、未公布的逐項成績。
 
 ---
 
-## MCP Tools（供 Claude 使用）
+## 環境
 
-| Tool | 對應 CLI | 說明 |
-|------|----------|------|
-| `fju_check_auth` | `whoami` | 驗證 session（會回存 rotate cookie） |
-| `fju_list_courses` | `courses list` | 列出課程，可傳 `semester` |
-| `fju_list_todos` | `todos list` | 列出待辦 |
-| `fju_list_course_bulletins` | `bulletins list` | 列出公告 |
-| `fju_list_course_activities` | `activities list` | 列出活動 + upload ID |
-| `fju_get_activity` | — | 取得單一活動詳情 |
-| `fju_get_upload_info` | — | 取得教材 metadata |
-| `fju_download_upload` | `download upload` | 下載教材 |
-| `fju_search_and_download` | `download search` | 關鍵字搜尋並下載 |
-| `fju_mark_video_complete` | `video mark-complete` | 標記單支影片 |
-| `fju_batch_mark_videos_complete` | `video batch-complete` | 批次標記影片 |
-
----
-
-## 重要技術細節
-
-- **學期格式**：`學年-學期`，如 `114-2`（民國 114 年第 2 學期）
-- **API 限制**：`post_activity_read` 每段最多 125 秒，超過會自動分段
-- **影片 activity_id**：從 `activities list --videos` 取得，不是 upload_id
-- **Cookie 有效期**：24 小時滑動；過期時 `whoami` 顯示認證失敗
-- **下載路徑預設**：`~/Downloads/TronClass/`，可用 `--dest` 覆蓋
-- 主人拒 MCP：Hermes 本體用 CLI，不要把這個 server 掛進 `hermes mcp add`
-
----
-
-## 環境資訊
-
-- **執行檔**：優先用全域 `fjumcp`；若尚未安裝全域 CLI，再用 `uv run fjumcp`
-- **本機 clone**：`~/workspace/github/FJU-TronClass-MCP`
-- **MCP Server**：`fjumcp serve` 或 `python -m fju_tronclass`（logs 已走 stderr）
-- **GitHub**：https://github.com/RX5950XT/FJU-TronClass-MCP
-- **安裝**：`git clone https://github.com/RX5950XT/FJU-TronClass-MCP.git && uv sync`
-- **全域 CLI 安裝**：`uv tool install -e .`
+- 執行檔：`fjumcp`（`uv tool install -e .`）或 `uv run fjumcp`
+- clone：`~/workspace/github/FJU-TronClass-MCP`
+- cookie：`~/.config/fju-tronclass/session`
+- GitHub：https://github.com/RX5950XT/FJU-TronClass-MCP

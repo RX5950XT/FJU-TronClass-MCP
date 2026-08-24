@@ -6,7 +6,7 @@
 
 - 版本：0.4.0
 - 測試：143+ passed
-- 新增：profile / digest / courses show·outline·modules / scores / exams / forums / activities show / homework show / bulletin --full
+- Agent 手冊：`skills/SKILL.md`（與 CLI 同步；分組／討論／digest 以 CLI 為準）
 - 分組用官方 `students.group_ids` 聚合，不掃 group ID
 - 已探測無 inbox / calendar / 逐項已公布成績 API
 

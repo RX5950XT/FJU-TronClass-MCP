@@ -34,12 +34,12 @@ uv run fjumcp <command>
 ```
 src/fju_tronclass/
 ├── client/          # HTTP 層（TronClassHttp + TronClassClient）
-├── models/          # Pydantic models（Course、Todo、Bulletin、Activity）
-├── services/        # 業務邏輯（courses、todos、bulletins、search、video）
+├── models/          # Pydantic models（Course、Todo、Bulletin、Activity、Person、catalog）
+├── services/        # 業務邏輯（courses、todos、people、downloads、search、video）
 ├── mcp_server/      # FastMCP server + tools
 │   └── tools/       # 各功能 MCP tool 定義
 ├── cli/             # Typer CLI
-│   └── commands/    # 子指令（courses、todos、bulletins、activities、download、video）
+│   └── commands/    # courses/todos/people/groups/homework/scores/forums/digest…
 ├── auth/            # Cookie 管理（keyring + XDG 檔案 + env）
 └── config.py        # pydantic-settings（讀 .env）
 ```
@@ -52,10 +52,17 @@ src/fju_tronclass/
 | 待辦事項 | `GET /api/todos` |
 | 課程公告 | `GET /api/course-bulletins?course_id={id}` |
 | 課程活動 | `GET /api/courses/{id}/activities` ← 注意複數 |
-| 取得活動 | `GET /api/course/{id}/learning-activity/{activity_id}` |
+| 活動詳情 | `GET /api/activities/{id}`（learning-activity 路徑常 404） |
 | 取得 Upload URL | `GET /api/uploads/{id}/url` |
 | 取得 Upload Meta | `GET /api/uploads/{id}` |
 | 標記影片進度 | `POST /api/course/activities-read/{activity_id}` |
+| 個人檔案 | `GET /api/profile` |
+| 課程詳情 / 大綱 / 模組 | `GET /api/courses/{id}`、`/outline`、`/modules` |
+| 修課名單 | `GET /api/course/{id}/students` |
+| 分組集合 | `GET /api/courses/{id}/group-sets`（學生通常只看到自己組名） |
+| 作業 | `GET /api/courses/{id}/homework-activities` |
+| 討論主題 | `GET /api/activities/{id}/topics` |
+| 成績組成 | `GET /api/courses/{id}/score-items` |
 
 ## API Response Key 對照（已驗證）
 
@@ -69,7 +76,7 @@ src/fju_tronclass/
 ## 學期格式
 
 - API 回傳：`academic_year.name + "-" + semester.real_name`（例：`"114-2"`）
-- 目前學期（2026-04-23）：`114-2`
+- 2026-08-24：課表仍是 114-2；115-1 尚未出現
 
 ## 重要注意事項
 
