@@ -21,7 +21,7 @@ async def probe_session(http_client: object) -> int:
     from fju_tronclass.client.tronclass import TronClassClient
 
     client = TronClassClient(http_client)  # type: ignore[arg-type]
-    courses = await client.get_my_courses(page=1, page_size=1)
-    count = len(courses)
+    page = await client.get_my_courses_page(page=1, page_size=1)
+    count = page.total
     logger.debug("Session 有效", course_count=count)
     return count

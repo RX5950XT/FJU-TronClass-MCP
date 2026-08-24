@@ -21,22 +21,26 @@ app.add_typer(video.app, name="video")
 app.add_typer(login.app, name="login", invoke_without_command=True)
 
 
-@app.command("whoami")
-def whoami(
-    verbose: bool = typer.Option(False, "--verbose", "-v", help="顯示詳細資訊"),  # noqa: B008
-) -> None:
-    """驗證目前的 session 是否有效，並顯示基本資訊。"""
+@app.callback()
+def _init_logging() -> None:
+    from fju_tronclass.config import get_settings
+    from fju_tronclass.logging import configure_logging
+
+    configure_logging(get_settings().fjumcp_log_level)
+
+
+def _run_session_probe(*, quiet: bool, verbose: bool) -> None:
+    """whoami / keepalive 共用：驗證 session 並回存 rotate 後的 cookie。"""
     import asyncio
 
     from rich.console import Console
 
-    from fju_tronclass.auth.cookie_store import load_cookie
-    from fju_tronclass.auth.session_probe import probe_session
-    from fju_tronclass.client.http import TronClassHttp
+    from fju_tronclass.auth.cookie_store import load_cookie, parse_cookie_expiry
+    from fju_tronclass.auth.session import verify_and_persist
     from fju_tronclass.config import get_settings
     from fju_tronclass.errors import AuthError, ServerError, SessionExpiredError
 
-    console = Console()
+    console = Console(stderr=quiet)
     settings = get_settings()
 
     try:
@@ -45,23 +49,41 @@ def whoami(
         console.print(f"[red]認證失敗：{e}[/red]")
         raise typer.Exit(1) from None
 
-    async def _check() -> int:
-        async with TronClassHttp(
-            session_cookie=cookie, base_url=settings.tronclass_base_url
-        ) as http:
-            return await probe_session(http)
-
     try:
-        count = asyncio.run(_check())
-        console.print(f"[green]已連線[/green] — 本學期共 {count} 門課程")
-        if verbose:
-            console.print(f"Base URL: {settings.tronclass_base_url}")
+        count = asyncio.run(verify_and_persist(cookie, settings.tronclass_base_url))
     except SessionExpiredError:
         console.print("[red]Session 已過期，請執行 `fjumcp login` 重新登入。[/red]")
         raise typer.Exit(1) from None
     except ServerError as e:
         console.print(f"[red]連線失敗：{e}[/red]")
         raise typer.Exit(1) from None
+
+    if quiet:
+        return
+
+    expiry = parse_cookie_expiry(load_cookie())
+    console.print(f"[green]已連線[/green] — 本學期共 {count} 門課程")
+    if verbose:
+        console.print(f"Base URL: {settings.tronclass_base_url}")
+        if expiry is not None:
+            console.print(f"Cookie 到期（UTC）：{expiry.isoformat()}")
+
+
+@app.command("whoami")
+def whoami(
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="顯示詳細資訊"),  # noqa: B008
+    quiet: bool = typer.Option(False, "--quiet", "-q", help="成功時不輸出（排程用）"),  # noqa: B008
+) -> None:
+    """驗證目前的 session 是否有效，並把 rotate 後的 cookie 寫回。"""
+    _run_session_probe(quiet=quiet, verbose=verbose)
+
+
+@app.command("keepalive")
+def keepalive(
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="顯示課程數與到期時間"),  # noqa: B008
+) -> None:
+    """輕量 ping，滑動延長 24h session。成功預設安靜，失敗才輸出。"""
+    _run_session_probe(quiet=not verbose, verbose=verbose)
 
 
 @app.command("serve")

@@ -16,18 +16,14 @@ async def fju_check_auth() -> dict:  # type: ignore[type-arg]
     - course_count: 已連線時的課程數量
     """
     from fju_tronclass.auth.cookie_store import load_cookie
-    from fju_tronclass.auth.session_probe import probe_session
-    from fju_tronclass.client.http import TronClassHttp
+    from fju_tronclass.auth.session import verify_and_persist
     from fju_tronclass.config import get_settings
     from fju_tronclass.errors import AuthError, SessionExpiredError
 
     try:
         cookie = load_cookie()
         settings = get_settings()
-        async with TronClassHttp(
-            session_cookie=cookie, base_url=settings.tronclass_base_url
-        ) as http:
-            count = await probe_session(http)
+        count = await verify_and_persist(cookie, settings.tronclass_base_url)
         return {
             "status": "ok",
             "message": f"已連線，本學期共 {count} 門課程",

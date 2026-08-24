@@ -33,6 +33,33 @@ async def test_get_my_courses_parses_fixture(
 
 
 @pytest.mark.asyncio
+async def test_get_my_courses_paginates_until_total(
+    httpx_mock: pytest_httpx.HTTPXMock,
+    client,  # type: ignore[no-untyped-def]
+) -> None:
+    httpx_mock.add_response(
+        url="https://elearn2.fju.edu.tw/api/my-courses?page=1&page_size=20",
+        json={
+            "courses": [{"id": 1, "name": "A", "course_code": "A1"}],
+            "total": 2,
+            "page": 1,
+            "page_size": 20,
+        },
+    )
+    httpx_mock.add_response(
+        url="https://elearn2.fju.edu.tw/api/my-courses?page=2&page_size=20",
+        json={
+            "courses": [{"id": 2, "name": "B", "course_code": "B1"}],
+            "total": 2,
+            "page": 2,
+            "page_size": 20,
+        },
+    )
+    courses = await client.get_my_courses()
+    assert [c.id for c in courses] == [1, 2]
+
+
+@pytest.mark.asyncio
 async def test_get_my_courses_accepts_null_semester(
     httpx_mock: pytest_httpx.HTTPXMock,
     client,  # type: ignore[no-untyped-def]

@@ -1,7 +1,7 @@
 ---
 name: fju-tronclass-mcp
 description: 操作輔仁大學 TronClass MCP Server 與 CLI（fjumcp）的完整指引：課程查詢、教材下載、公告瀏覽、影片標記。觸發時機：使用者提到 TronClass、輔大課程、fjumcp、下載教材、影片完成。
-version: 1.0.0
+version: 1.1.0
 ---
 
 # FJU TronClass MCP — 操作技能
@@ -10,7 +10,7 @@ version: 1.0.0
 當任務和輔大 TronClass、`fjumcp`、教材下載、待辦查詢、影片完成標記有關時，優先依這份 skill 操作。
 
 執行 CLI 前先確認認證可用：
-```powershell
+```bash
 fjumcp whoami
 ```
 
@@ -18,12 +18,26 @@ fjumcp whoami
 
 ## 認證設定
 
-Cookie 儲存方式（三選一，優先順序依序）：
-1. 環境變數：`TRONCLASS_SESSION_COOKIE=V2-...`
-2. `.env` 檔（專案根目錄）：`TRONCLASS_SESSION_COOKIE=V2-...`
-3. Windows Credential Manager：`fjumcp login cookie`
+Cookie 儲存優先順序（與程式碼一致）：
+1. keyring（Windows Credential Manager / 系統密鑰環）
+2. 本機檔案：`~/.config/fju-tronclass/session`（0600；Linux / WSL 主力）
+3. 環境變數 / 專案 `.env`：`TRONCLASS_SESSION_COOKIE=V2-...`（靜態，不會 rotate）
+
+**寫入 cookie（非互動，給 agent）：**
+```bash
+fjumcp login --cookie 'V2-...'
+# 或 stdin
+printf '%s' "$TRONCLASS_SESSION_COOKIE" | fjumcp login
+```
 
 **取得 Cookie**：瀏覽器登入 https://elearn2.fju.edu.tw → F12 → Application → Cookies → 複製 `session` 欄位（`V2-` 開頭）
+
+Session 是 24 小時滑動制。`whoami` / `keepalive` / 一般 CLI 成功時會自動把 rotate 後的新值寫回。閒置超過一天才需要重新登入。
+
+保活：
+```bash
+fjumcp keepalive          # 成功安靜、失敗非零
+```
 
 ---
 
@@ -31,18 +45,20 @@ Cookie 儲存方式（三選一，優先順序依序）：
 
 ### 連線驗證
 
-```powershell
+```bash
 fjumcp whoami
 # 輸出：已連線 — 本學期共 N 門課程
+fjumcp whoami -v          # 含到期時間
+fjumcp keepalive          # 排程用
 ```
 
 ### 課程查詢
 
-```powershell
+```bash
 # 列出所有課程（含歷史學期）
 fjumcp courses list
 
-# 過濾特定學期（格式：學年-學期，如 114-2、114-1、113-2）
+# 過濾特定學期（格式：學年-學期，如 114-2、115-1）
 fjumcp courses list --semester 114-2
 ```
 
@@ -51,20 +67,20 @@ fjumcp courses list --semester 114-2
 
 ### 待辦事項
 
-```powershell
+```bash
 fjumcp todos list               # 只列未完成
 fjumcp todos list --include-done  # 含已完成
 ```
 
 ### 課程公告
 
-```powershell
+```bash
 fjumcp bulletins list <course_id>
 ```
 
 ### 課程活動（教材與影片）
 
-```powershell
+```bash
 # 列出課程所有活動，附件清單會顯示 upload ID
 fjumcp activities list <course_id>
 
@@ -81,10 +97,10 @@ fjumcp activities list <course_id> --materials
 
 ### 下載教材
 
-```powershell
+```bash
 # 用 upload ID 直接下載（從 activities list 取得）
 fjumcp download upload <upload_id>
-fjumcp download upload <upload_id> --dest D:/Downloads
+fjumcp download upload <upload_id> --dest ~/Downloads/TronClass
 
 # 用關鍵字搜尋後下載（不需要知道 ID）
 fjumcp download search "關鍵字" --course <course_id>
@@ -94,7 +110,7 @@ fjumcp download search "關鍵字" --all --dry-run  # 預覽，不實際下載
 
 ### 影片完成標記
 
-```powershell
+```bash
 # 標記單支影片（先用 dry-run 確認）
 fjumcp video mark-complete <activity_id> <duration_seconds> --dry-run
 fjumcp video mark-complete <activity_id> <duration_seconds>
@@ -111,7 +127,7 @@ fjumcp video batch-complete <course_id> --include-completed  # 含已完成
 
 ### 工作流程 A：下載特定課程的所有教材
 
-```powershell
+```bash
 # 1. 找到 course_id
 fjumcp courses list --semester 114-2
 
@@ -124,7 +140,7 @@ fjumcp download upload <upload_id> --dest ~/Downloads
 
 ### 工作流程 B：關鍵字搜尋下載
 
-```powershell
+```bash
 # 不知道 ID，只知道檔案名稱關鍵字
 fjumcp download search "期中" --course <course_id>
 fjumcp download search "講義" --all --dry-run  # 先 dry-run 確認
@@ -132,7 +148,7 @@ fjumcp download search "講義" --all --dry-run  # 先 dry-run 確認
 
 ### 工作流程 C：查看所有課程待辦
 
-```powershell
+```bash
 fjumcp todos list  # 列出所有未繳交的作業，含截止時間
 ```
 
@@ -142,7 +158,7 @@ fjumcp todos list  # 列出所有未繳交的作業，含截止時間
 
 | Tool | 對應 CLI | 說明 |
 |------|----------|------|
-| `fju_check_auth` | `whoami` | 驗證 session |
+| `fju_check_auth` | `whoami` | 驗證 session（會回存 rotate cookie） |
 | `fju_list_courses` | `courses list` | 列出課程，可傳 `semester` |
 | `fju_list_todos` | `todos list` | 列出待辦 |
 | `fju_list_course_bulletins` | `bulletins list` | 列出公告 |
@@ -161,15 +177,17 @@ fjumcp todos list  # 列出所有未繳交的作業，含截止時間
 - **學期格式**：`學年-學期`，如 `114-2`（民國 114 年第 2 學期）
 - **API 限制**：`post_activity_read` 每段最多 125 秒，超過會自動分段
 - **影片 activity_id**：從 `activities list --videos` 取得，不是 upload_id
-- **Cookie 有效期**：session 可能過期，過期時 `whoami` 會顯示認證失敗
+- **Cookie 有效期**：24 小時滑動；過期時 `whoami` 顯示認證失敗
 - **下載路徑預設**：`~/Downloads/TronClass/`，可用 `--dest` 覆蓋
+- 主人拒 MCP：Hermes 本體用 CLI，不要把這個 server 掛進 `hermes mcp add`
 
 ---
 
 ## 環境資訊
 
 - **執行檔**：優先用全域 `fjumcp`；若尚未安裝全域 CLI，再用 `uv run fjumcp`
-- **MCP Server**：`fjumcp serve` 或 `python -m fju_tronclass`
+- **本機 clone**：`~/workspace/github/FJU-TronClass-MCP`
+- **MCP Server**：`fjumcp serve` 或 `python -m fju_tronclass`（logs 已走 stderr）
 - **GitHub**：https://github.com/RX5950XT/FJU-TronClass-MCP
 - **安裝**：`git clone https://github.com/RX5950XT/FJU-TronClass-MCP.git && uv sync`
 - **全域 CLI 安裝**：`uv tool install -e .`

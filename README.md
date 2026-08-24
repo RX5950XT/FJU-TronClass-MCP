@@ -58,7 +58,16 @@ TronClass 有 CAS + CAPTCHA，所以這個工具不是直接吃帳密，而是�
 fjumcp login cookie
 ```
 
-貼上後，cookie 會存進 Windows Credential Manager。
+貼上後，cookie 會存進 keyring（Windows Credential Manager）。
+Linux / WSL / headless 沒有可用 keyring 時，改寫到 `~/.config/fju-tronclass/session`（權限 0600）。
+
+非互動（給 agent / 腳本）：
+
+```bash
+fjumcp login --cookie 'V2-你的cookie值'
+# 或
+printf '%s' "$TRONCLASS_SESSION_COOKIE" | fjumcp login
+```
 
 你也可以放在專案根目錄的 `.env`：
 
@@ -67,9 +76,17 @@ TRONCLASS_SESSION_COOKIE=V2-你的cookie值
 ```
 
 注意：`session cookie` 效期是 24 小時「滑動制」。
-伺服器每次回應都會換發新 cookie 延長 24 小時，本工具會自動把新值存回 Credential Manager——
-所以只要 24 小時內有用過一次（CLI 或 MCP），session 就會一直有效；閒置超過一天才需要重新登入。
-`.env` 裡的 cookie 是靜態的、不會自動更新，只建議當備援，平常以 `fjumcp login cookie` 存進 Credential Manager 為主。
+伺服器每次回應都會換發新 cookie 延長 24 小時，本工具會自動把新值存回 keyring / 本機檔案——
+所以只要 24 小時內有用過一次（CLI、MCP 或 `fjumcp keepalive`），session 就會一直有效；閒置超過一天才需要重新登入。
+`.env` 裡的 cookie 是靜態的、不會自動更新，只建議當備援。
+
+排程保活（建議每 8 小時）：
+
+```bash
+fjumcp keepalive          # 成功安靜、失敗非零
+# 或
+./scripts/keepalive.sh
+```
 
 ## 3. 先確認有沒有連上
 
@@ -158,7 +175,8 @@ fjumcp video batch-complete <course_id>
 
 ```text
 fjumcp
-├── whoami
+├── whoami [--quiet] [--verbose]
+├── keepalive [--verbose]
 ├── serve
 ├── courses list
 ├── todos list
@@ -168,7 +186,8 @@ fjumcp
 ├── download search
 ├── video mark-complete
 ├── video batch-complete
-├── login cookie
+├── login [--cookie V2-...]
+├── login cookie [--cookie V2-...]
 └── login logout
 ```
 
@@ -247,7 +266,7 @@ uv run mypy src/
 ## 注意事項
 
 - 這個工具只適合拿來管理你自己的 TronClass 帳號
-- `session cookie` 效期為 24 小時滑動；有在用就會自動延長，閒置超過一天失效後請重新從瀏覽器抓新的 `session`
+- `session cookie` 效期為 24 小時滑動；有在用（含 `fjumcp keepalive`）就會自動延長，閒置超過一天失效後請重新從瀏覽器抓新的 `session`
 - `video mark-complete` / `video batch-complete` 會直接更新觀看進度，請自己評估風險
 - 下載下來的教材請只作個人學習使用，不要散布
 

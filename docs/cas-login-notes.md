@@ -41,11 +41,14 @@
 
 ## 貼入 fjumcp
 
-```powershell
-# 互動式：fjumcp 會提示你貼上 cookie
-fjumcp login --cookie
+```bash
+# 非互動（agent / 腳本）
+fjumcp login --cookie 'V2-xxxxxxxxxxxxxxxx...'
 
-# 或直接寫進 .env（不建議提交到版本控制）
+# 互動式
+fjumcp login
+
+# 或直接寫進 .env（不建議提交到版本控制；靜態值不會 rotate）
 TRONCLASS_SESSION_COOKIE=V2-xxxxxxxxxxxxxxxx...
 ```
 
@@ -53,10 +56,11 @@ TRONCLASS_SESSION_COOKIE=V2-xxxxxxxxxxxxxxxx...
 
 ## Cookie 有效期
 
-TronClass session cookie 通常在以下情況失效：
-- **瀏覽器登出**（點擊「登出」按鈕）
-- **閒置超時**（根據學校設定，通常 2–8 小時）
-- **同時登入其他裝置**（部分 LMS 只允許單一 session）
+TronClass session cookie 是 **24 小時滑動制**：
+- 每次成功 API 回應會 rotate 並延長 24 小時
+- **閒置超過一天**才失效
+- **瀏覽器登出**也會立刻失效
+- 排程跑 `fjumcp keepalive` 可維持 session
 
 失效後執行任何 `fjumcp` 指令會看到：
 
@@ -72,4 +76,4 @@ SessionExpiredError: Session 已過期，請重新執行 fjumcp login
 
 - **不要**將 `session` cookie 分享給他人或貼到公開場合
 - **不要**將 cookie 提交到 git repository（`.env` 已在 `.gitignore` 中）
-- cookie 儲存於 Windows Credential Manager（keyring），不落地明文檔案
+- cookie 優先存 keyring；Linux / WSL 沒有可用 keyring 時寫入 `~/.config/fju-tronclass/session`（0600）

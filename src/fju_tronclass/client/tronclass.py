@@ -27,16 +27,30 @@ class TronClassClient:
     # 課程
     # ------------------------------------------------------------------ #
 
-    async def get_my_courses(self, page: int = 1, page_size: int = 20) -> list[Course]:
-        """取得我的課程清單。"""
+    async def get_my_courses_page(self, page: int = 1, page_size: int = 20) -> CourseListResponse:
+        """取得我的課程清單（含 total / 分頁欄位）。"""
         data = await self._http.get_json(
             "/api/my-courses",
             params={"page": page, "page_size": page_size},
         )
         try:
-            return CourseListResponse.model_validate(data).items
+            return CourseListResponse.model_validate(data)
         except Exception as e:
             raise SchemaError("CourseListResponse", data) from e
+
+    async def get_my_courses(self, page: int = 1, page_size: int = 20) -> list[Course]:
+        """取得我的課程清單。page=1（預設）會自動翻完所有頁。"""
+        if page != 1:
+            return (await self.get_my_courses_page(page=page, page_size=page_size)).items
+        items: list[Course] = []
+        current = 1
+        while True:
+            resp = await self.get_my_courses_page(page=current, page_size=page_size)
+            items.extend(resp.items)
+            if len(items) >= resp.total or not resp.items:
+                break
+            current += 1
+        return items
 
     # ------------------------------------------------------------------ #
     # 待辦事項

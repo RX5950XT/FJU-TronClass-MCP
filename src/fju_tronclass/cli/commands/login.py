@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import sys
+
 import typer
 from rich.console import Console
 from rich.prompt import Prompt
@@ -11,52 +13,60 @@ console = Console()
 
 
 @app.callback(invoke_without_command=True)
-def login_default(ctx: typer.Context) -> None:
+def login_default(
+    ctx: typer.Context,
+    cookie: str | None = typer.Option(  # noqa: B008
+        None, "--cookie", help="直接傳入 session cookie，略過互動提示"
+    ),
+) -> None:
     """互動式貼上 session cookie（預設登入方式）。"""
     if ctx.invoked_subcommand is None:
-        _cookie_login()
+        _cookie_login(cookie)
 
 
 @app.command("cookie")
-def cookie_login() -> None:
+def cookie_login(
+    cookie: str | None = typer.Option(  # noqa: B008
+        None, "--cookie", help="直接傳入 session cookie，略過互動提示"
+    ),
+) -> None:
     """互動式貼上 session cookie。"""
-    _cookie_login()
+    _cookie_login(cookie)
 
 
-def _cookie_login() -> None:
-    import asyncio
-
-    from fju_tronclass.auth.cookie_store import save_cookie
-    from fju_tronclass.auth.session_probe import probe_session
-    from fju_tronclass.client.http import TronClassHttp
-    from fju_tronclass.config import get_settings
-    from fju_tronclass.errors import FjuTronclassError, ServerError, SessionExpiredError
-
+def _read_cookie(cookie: str | None) -> str:
+    if cookie and cookie.strip():
+        return cookie.strip()
+    if not sys.stdin.isatty():
+        piped = sys.stdin.read().strip()
+        if piped:
+            return piped
     console.print("[bold]輔大 TronClass — Cookie 登入[/bold]")
     console.print("1. 在瀏覽器登入 https://elearn2.fju.edu.tw/")
     console.print("2. 開啟 DevTools（F12）→ Application → Cookies → elearn2.fju.edu.tw")
     console.print("3. 複製 [bold]session[/bold] 欄位的值（以 V2- 開頭）")
+    return Prompt.ask("\n請貼上 session cookie 值").strip()
 
-    cookie = Prompt.ask("\n請貼上 session cookie 值")
-    cookie = cookie.strip()
 
+def _cookie_login(cookie: str | None) -> None:
+    import asyncio
+
+    from fju_tronclass.auth.cookie_store import cookie_file_path
+    from fju_tronclass.auth.session import verify_and_persist
+    from fju_tronclass.config import get_settings
+    from fju_tronclass.errors import FjuTronclassError, ServerError, SessionExpiredError
+
+    cookie = _read_cookie(cookie)
     if not cookie:
         console.print("[red]Cookie 不可為空。[/red]")
         raise typer.Exit(1)
 
     settings = get_settings()
 
-    async def _verify() -> int:
-        async with TronClassHttp(
-            session_cookie=cookie, base_url=settings.tronclass_base_url
-        ) as http:
-            return await probe_session(http)
-
     try:
-        count = asyncio.run(_verify())
-        save_cookie(cookie)
-        console.print(f"[green]登入成功！[/green] 本學期共 {count} 門課程。")
-        console.print("Cookie 已儲存至 Windows Credential Manager。")
+        count = asyncio.run(
+            verify_and_persist(cookie, settings.tronclass_base_url, always_save=True)
+        )
     except SessionExpiredError:
         console.print("[red]Cookie 無效或已過期，請重新複製。[/red]")
         raise typer.Exit(1) from None
@@ -66,6 +76,9 @@ def _cookie_login() -> None:
     except FjuTronclassError as e:
         console.print(f"[red]{e}[/red]")
         raise typer.Exit(1) from None
+
+    console.print(f"[green]登入成功！[/green] 本學期共 {count} 門課程。")
+    console.print(f"Cookie 已儲存（keyring 或 {cookie_file_path()}）。")
 
 
 def playwright_login_cmd(
@@ -100,4 +113,4 @@ def logout() -> None:
     from fju_tronclass.auth.cookie_store import delete_cookie
 
     delete_cookie()
-    console.print("已登出，session cookie 已從 Credential Manager 移除。")
+    console.print("已登出，session cookie 已移除。")
