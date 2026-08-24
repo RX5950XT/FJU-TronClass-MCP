@@ -133,3 +133,54 @@ def search_and_download_cmd(
                         console.print(f"  [red]✗[/red] {r.upload_name}：{exc}")
 
     run_async_command(_run())
+
+
+@app.command("course")
+def download_course_cmd(
+    course_id: int = typer.Argument(..., help="課程 ID"),
+    dest: Path = typer.Option(None, "--dest", "-d", help="下載目標目錄"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="只列出教材，不實際下載"),
+) -> None:
+    """下載一門課的全部教材附件。"""
+    from fju_tronclass.config import get_settings
+    from fju_tronclass.services.downloads import download_upload
+
+    settings = get_settings()
+    dest_dir = dest or (settings.fjumcp_download_dir / str(course_id))
+
+    async def _run() -> None:
+        async with build_client() as client:
+            activities = await client.get_course_activities(course_id)
+            uploads: list[tuple[int, str, int]] = []
+            for act in activities:
+                if not act.is_material:
+                    continue
+                for up in act.uploads:
+                    uploads.append((up.id, up.name or act.display_name, up.size))
+
+        if not uploads:
+            console.print("[yellow]這門課沒有可下載的教材附件。[/yellow]")
+            return
+
+        table = Table(title=f"課程 {course_id} 教材", show_lines=True)
+        table.add_column("Upload ID", style="dim", width=12)
+        table.add_column("檔名")
+        table.add_column("大小", width=10)
+        for uid, name, size in uploads:
+            table.add_row(str(uid), name, f"{size / 1_048_576:.1f} MB")
+        console.print(table)
+
+        if dry_run:
+            console.print(f"\n[dim]共 {len(uploads)} 個檔案。移除 --dry-run 即下載到 {dest_dir}[/dim]")
+            return
+
+        console.print(f"\n開始下載 {len(uploads)} 個檔案 → {dest_dir}")
+        async with build_client() as client:
+            for uid, name, _size in uploads:
+                try:
+                    file_path, size = await download_upload(client, upload_id=uid, dest_dir=dest_dir)
+                    console.print(f"  [green]✓[/green] {name} → {file_path} ({size / 1_048_576:.2f} MB)")
+                except Exception as exc:
+                    console.print(f"  [red]✗[/red] {name}：{exc}")
+
+    run_async_command(_run())

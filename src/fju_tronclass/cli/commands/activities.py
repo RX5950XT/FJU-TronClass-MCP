@@ -17,6 +17,7 @@ def list_cmd(
     course_id: int = typer.Argument(..., help="課程 ID（從 fjumcp courses list 取得）"),
     videos_only: bool = typer.Option(False, "--videos", help="只顯示影片活動"),
     materials_only: bool = typer.Option(False, "--materials", help="只顯示教材活動"),
+    as_json: bool = typer.Option(False, "--json", help="以 JSON 輸出"),
 ) -> None:
     """列出課程中所有活動（教材與影片）。"""
 
@@ -29,6 +30,24 @@ def list_cmd(
             filtered = [a for a in activities if a.is_video]
         elif materials_only:
             filtered = [a for a in activities if a.is_material]
+
+        if as_json:
+            from fju_tronclass.cli._output import emit_json
+
+            emit_json(
+                [
+                    {
+                        "id": a.id,
+                        "name": a.display_name,
+                        "type": a.type,
+                        "complete": a.is_complete,
+                        "duration": a.video_duration,
+                        "uploads": [{"id": u.id, "name": u.name, "size": u.size} for u in a.uploads],
+                    }
+                    for a in filtered
+                ]
+            )
+            return
 
         if not filtered:
             console.print("[dim]沒有符合條件的活動。[/dim]")

@@ -4,7 +4,18 @@ from __future__ import annotations
 
 import typer
 
-from fju_tronclass.cli.commands import activities, bulletins, courses, download, login, todos, video
+from fju_tronclass.cli.commands import (
+    activities,
+    bulletins,
+    courses,
+    download,
+    groups,
+    homework,
+    login,
+    people,
+    todos,
+    video,
+)
 
 app = typer.Typer(
     name="fjumcp",
@@ -17,6 +28,9 @@ app.add_typer(todos.app, name="todos")
 app.add_typer(bulletins.app, name="bulletins")
 app.add_typer(activities.app, name="activities")
 app.add_typer(download.app, name="download")
+app.add_typer(people.app, name="people")
+app.add_typer(groups.app, name="groups")
+app.add_typer(homework.app, name="homework")
 app.add_typer(video.app, name="video")
 app.add_typer(login.app, name="login", invoke_without_command=True)
 

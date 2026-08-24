@@ -4,10 +4,11 @@
 
 ## 專案狀態（2026-08-24）
 
-- 版本：0.2.0
-- 測試：132 passed，覆蓋率 94.13%（閾值 80%）
-- Lint / mypy：全部通過
-- 驗證指令：`uv run pytest --cov` + `uv run ruff check src/ tests/` + `uv run mypy src/`
+- 版本：0.3.0
+- 測試：138 passed，覆蓋率約 90%
+- 新增 CLI：`people` / `groups` / `homework` / `download course` / 各 list `--json`
+- 分組用官方 `students.group_ids` 聚合，不掃 group ID
+- Hermes 可寫 AGENTS.md：`security.protected_instruction_files=false`
 
 ## 2026-08-24：WSL 檔案庫 + keepalive + whoami 回存
 

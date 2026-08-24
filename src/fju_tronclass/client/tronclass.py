@@ -11,6 +11,13 @@ from fju_tronclass.logging import get_logger
 from fju_tronclass.models.activity import Activity, ActivityListResponse, ActivityReadResult
 from fju_tronclass.models.bulletin import Bulletin, BulletinListResponse
 from fju_tronclass.models.course import Course, CourseListResponse
+from fju_tronclass.models.people import (
+    GroupSet,
+    GroupSetListResponse,
+    Homework,
+    HomeworkListResponse,
+    Person,
+)
 from fju_tronclass.models.todo import Todo, TodoListResponse
 from fju_tronclass.models.upload import UploadMeta, UploadUrl
 
@@ -51,6 +58,36 @@ class TronClassClient:
                 break
             current += 1
         return items
+
+    async def get_course_students(self, course_id: int) -> list[Person]:
+        data = await self._http.get_json(f"/api/course/{course_id}/students")
+        try:
+            items = data.get("students", []) if isinstance(data, dict) else []
+            return [Person.model_validate(item) for item in items]
+        except Exception as e:
+            raise SchemaError("PersonList", data) from e
+
+    async def get_course_enrollments(self, course_id: int) -> list[Person]:
+        data = await self._http.get_json(f"/api/course/{course_id}/enrollments")
+        try:
+            items = data.get("enrollments", []) if isinstance(data, dict) else []
+            return [Person.model_validate(item) for item in items]
+        except Exception as e:
+            raise SchemaError("EnrollmentList", data) from e
+
+    async def get_course_group_sets(self, course_id: int) -> list[GroupSet]:
+        data = await self._http.get_json(f"/api/courses/{course_id}/group-sets")
+        try:
+            return GroupSetListResponse.model_validate(data).items
+        except Exception as e:
+            raise SchemaError("GroupSetListResponse", data) from e
+
+    async def get_homework_activities(self, course_id: int) -> list[Homework]:
+        data = await self._http.get_json(f"/api/courses/{course_id}/homework-activities")
+        try:
+            return HomeworkListResponse.model_validate(data).items
+        except Exception as e:
+            raise SchemaError("HomeworkListResponse", data) from e
 
     # ------------------------------------------------------------------ #
     # 待辦事項

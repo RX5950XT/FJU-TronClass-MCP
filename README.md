@@ -155,6 +155,18 @@ fjumcp download search "講義" --all --dry-run
 
 `--dry-run` 很適合先確認搜尋結果，不會真的下載。
 
+### 成員 / 分組 / 作業
+
+```bash
+fjumcp people list 374430
+fjumcp people list 374430 --role student --json
+fjumcp groups list 374430
+fjumcp homework list 374430
+fjumcp download course 374430 --dry-run
+```
+
+所有 `list` 指令都支援 `--json`。
+
 ### 影片標記完成
 
 單支影片：
@@ -184,6 +196,10 @@ fjumcp
 ├── activities list
 ├── download upload
 ├── download search
+├── download course
+├── people list
+├── groups list
+├── homework list
 ├── video mark-complete
 ├── video batch-complete
 ├── login [--cookie V2-...]

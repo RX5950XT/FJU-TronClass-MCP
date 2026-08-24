@@ -15,13 +15,32 @@ console = Console()
 @app.command("list")
 def list_todos(
     include_done: bool = typer.Option(False, "--include-done", help="包含已完成項目"),
+    as_json: bool = typer.Option(False, "--json", help="以 JSON 輸出"),
 ) -> None:
     """列出待辦事項。"""
+    from fju_tronclass.cli._output import emit_json
     from fju_tronclass.services.todos import list_todos as _list
 
     async def _run() -> None:
         async with build_client() as client:
             todos = await _list(client, include_done=include_done)
+
+        if as_json:
+            emit_json(
+                [
+                    {
+                        "id": t.id,
+                        "title": t.title,
+                        "course_id": t.course_id,
+                        "course_name": t.course_name,
+                        "due_time": t.due_time,
+                        "type": t.type,
+                        "is_done": t.is_done,
+                    }
+                    for t in todos
+                ]
+            )
+            return
 
         if not todos:
             console.print("[green]目前沒有待辦事項！[/green]")

@@ -15,13 +15,30 @@ console = Console()
 @app.command("list")
 def list_courses(
     semester: str | None = typer.Option(None, "--semester", "-s", help="過濾學期（例：113-2）"),
+    as_json: bool = typer.Option(False, "--json", help="以 JSON 輸出"),
 ) -> None:
     """列出我的課程清單。"""
+    from fju_tronclass.cli._output import emit_json
     from fju_tronclass.services.courses import list_courses as _list
 
     async def _run() -> None:
         async with build_client() as client:
             courses = await _list(client, semester=semester)
+
+        if as_json:
+            emit_json(
+                [
+                    {
+                        "id": c.id,
+                        "name": c.name,
+                        "code": c.code,
+                        "semester": c.semester,
+                        "teacher_name": c.teacher_name,
+                    }
+                    for c in courses
+                ]
+            )
+            return
 
         table = Table(title="我的課程", show_lines=True)
         table.add_column("ID", style="dim", width=8)

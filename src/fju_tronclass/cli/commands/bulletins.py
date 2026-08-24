@@ -16,6 +16,7 @@ console = Console()
 def list_bulletins(
     course_id: int = typer.Argument(..., help="課程 ID"),
     limit: int = typer.Option(20, "--limit", "-n", help="最多顯示幾筆"),
+    as_json: bool = typer.Option(False, "--json", help="以 JSON 輸出"),
 ) -> None:
     """列出指定課程的公告。"""
     from fju_tronclass.services.bulletins import list_bulletins as _list
@@ -23,6 +24,21 @@ def list_bulletins(
     async def _run() -> None:
         async with build_client() as client:
             bulletins = await _list(client, course_id=course_id, limit=limit)
+
+        if as_json:
+            from fju_tronclass.cli._output import emit_json
+
+            emit_json(
+                [
+                    {
+                        "id": b.id,
+                        "title": b.title,
+                        "created_at": b.created_at,
+                    }
+                    for b in bulletins
+                ]
+            )
+            return
 
         if not bulletins:
             console.print(f"[dim]課程 {course_id} 目前沒有公告。[/dim]")
