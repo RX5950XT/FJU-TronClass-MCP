@@ -184,3 +184,57 @@ def download_course_cmd(
                     console.print(f"  [red]✗[/red] {name}：{exc}")
 
     run_async_command(_run())
+
+
+@app.command("semester")
+def download_semester_cmd(
+    semester: str = typer.Argument(..., help="學期，例如 114-2"),
+    dest: Path = typer.Option(None, "--dest", "-d", help="下載目標目錄"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="只列出教材，不實際下載"),
+) -> None:
+    """下載整個學期所有課程的教材。"""
+    from fju_tronclass.config import get_settings
+    from fju_tronclass.services.courses import list_courses
+    from fju_tronclass.services.downloads import download_upload
+
+    settings = get_settings()
+    dest_dir = dest or (settings.fjumcp_download_dir / semester)
+
+    async def _run() -> None:
+        async with build_client() as client:
+            courses = await list_courses(client, semester=semester)
+            found: list[tuple[str, int, str, int]] = []
+            for course in courses:
+                activities = await client.get_course_activities(course.id)
+                for act in activities:
+                    if not act.is_material:
+                        continue
+                    for up in act.uploads:
+                        found.append((course.name, up.id, up.name or act.display_name, up.size))
+
+        if not found:
+            console.print(f"[yellow]{semester} 沒有可下載的教材。[/yellow]")
+            return
+
+        table = Table(title=f"{semester} 教材", show_lines=True)
+        table.add_column("課程")
+        table.add_column("Upload ID", style="dim", width=12)
+        table.add_column("檔名")
+        for cname, uid, name, size in found:
+            table.add_row(cname, str(uid), f"{name} ({size / 1_048_576:.1f} MB)")
+        console.print(table)
+
+        if dry_run:
+            console.print(f"\n[dim]共 {len(found)} 個檔案。移除 --dry-run 即下載到 {dest_dir}[/dim]")
+            return
+
+        async with build_client() as client:
+            for cname, uid, name, _size in found:
+                folder = dest_dir / cname
+                try:
+                    file_path, size = await download_upload(client, upload_id=uid, dest_dir=folder)
+                    console.print(f"  [green]✓[/green] {cname} / {name} → {file_path}")
+                except Exception as exc:
+                    console.print(f"  [red]✗[/red] {cname} / {name}：{exc}")
+
+    run_async_command(_run())

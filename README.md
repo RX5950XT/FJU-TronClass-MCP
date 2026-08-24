@@ -194,7 +194,7 @@ fjumcp
 ├── todos list
 ├── bulletins list [--full]
 ├── activities list [--type] / show
-├── download upload|search|course
+├── download upload|search|course|semester
 ├── people / groups
 ├── homework list|show
 ├── scores / exams

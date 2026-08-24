@@ -27,7 +27,7 @@ fjumcp
 ├── todos list
 ├── bulletins list [--full]
 ├── activities list [--type] / show
-├── download upload|search|course
+├── download upload|search|course|semester
 ├── people list / groups list
 ├── homework list|show
 ├── scores list / exams list

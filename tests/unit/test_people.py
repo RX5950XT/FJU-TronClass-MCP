@@ -93,5 +93,5 @@ async def test_list_groups_clusters_students() -> None:
     assert [g.id for g in sets[0].groups] == [10, 20]
     assert sets[0].groups[0].name == "第一組"
     assert [m.name for m in sets[0].groups[0].members] == ["甲", "乙"]
-    assert sets[0].groups[1].name == ""
+    assert sets[0].groups[1].name == "第二組"
     assert [m.name for m in sets[0].groups[1].members] == ["丙"]

@@ -69,5 +69,15 @@ def show_topic(
         console.print(f"[bold]{data.get('title') or '(無標題)'}[/bold]  #{data.get('id')}")
         console.print(f"作者：{created.get('name', '—')}　讚 {data.get('like_count', 0)}")
         console.print(html_to_text(str(data.get("content") or "")))
+        replies = data.get("replies")
+        if isinstance(replies, list) and replies:
+            console.print(f"\n[bold]回覆 {len(replies)}[/bold]")
+            for reply in replies:
+                if not isinstance(reply, dict):
+                    continue
+                author = reply.get("created_by")
+                name = author.get("name") if isinstance(author, dict) else "—"
+                console.print(f"\n— {name}")
+                console.print(html_to_text(str(reply.get("content") or "")))
 
     run_async_command(_run())
