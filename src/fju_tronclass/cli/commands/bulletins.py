@@ -16,6 +16,7 @@ console = Console()
 def list_bulletins(
     course_id: int = typer.Argument(..., help="課程 ID"),
     limit: int = typer.Option(20, "--limit", "-n", help="最多顯示幾筆"),
+    full: bool = typer.Option(False, "--full", help="顯示公告內文"),
     as_json: bool = typer.Option(False, "--json", help="以 JSON 輸出"),
 ) -> None:
     """列出指定課程的公告。"""
@@ -33,6 +34,7 @@ def list_bulletins(
                     {
                         "id": b.id,
                         "title": b.title,
+                        "content": b.content,
                         "created_at": b.created_at,
                     }
                     for b in bulletins
@@ -52,7 +54,13 @@ def list_bulletins(
         for b in bulletins:
             created = b.created_at.strftime("%Y-%m-%d %H:%M") if b.created_at else "—"
             table.add_row(str(b.id), b.title, created)
-
         console.print(table)
+        if full:
+            from fju_tronclass.models.catalog import html_to_text
+
+            for b in bulletins:
+                body = html_to_text(b.content)
+                if body:
+                    console.print(f"\n[bold]{b.title}[/bold]\n{body[:800]}")
 
     run_async_command(_run())

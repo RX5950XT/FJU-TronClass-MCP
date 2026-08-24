@@ -63,3 +63,32 @@ def list_homework_cmd(
         console.print(f"共 [bold]{len(items)}[/bold] 筆")
 
     run_async_command(_run())
+
+
+@app.command("show")
+def show_homework(
+    homework_id: int = typer.Argument(..., help="作業 ID"),
+    as_json: bool = typer.Option(False, "--json", help="以 JSON 輸出"),
+) -> None:
+    """顯示作業說明。"""
+    from fju_tronclass.models.catalog import html_to_text
+
+    async def _run() -> None:
+        async with build_client() as client:
+            data = await client.get_homework(homework_id)
+        if as_json:
+            emit_json(data)
+            return
+        payload = data.get("data")
+        if not isinstance(payload, dict):
+            payload = {}
+        console.print(f"[bold]{data.get('title')}[/bold]  #{data.get('id')}")
+        console.print(
+            f"截止 {data.get('end_time') or data.get('deadline')}　"
+            f"已繳 {data.get('submitted')}　成績 {data.get('score')}"
+        )
+        desc = html_to_text(str(payload.get("description") or ""))
+        if desc:
+            console.print("\n" + desc[:2000])
+
+    run_async_command(_run())

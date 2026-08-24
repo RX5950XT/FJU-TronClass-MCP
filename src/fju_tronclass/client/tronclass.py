@@ -5,11 +5,25 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from fju_tronclass.client.http import TronClassHttp
 from fju_tronclass.errors import SchemaError
 from fju_tronclass.logging import get_logger
 from fju_tronclass.models.activity import Activity, ActivityListResponse, ActivityReadResult
 from fju_tronclass.models.bulletin import Bulletin, BulletinListResponse
+from fju_tronclass.models.catalog import (
+    CourseModule,
+    CourseOutline,
+    CourseScore,
+    Exam,
+    ExamListResponse,
+    ForumTopic,
+    Profile,
+    ScoreItem,
+    ScoreItemListResponse,
+    TopicListResponse,
+)
 from fju_tronclass.models.course import Course, CourseListResponse
 from fju_tronclass.models.people import (
     GroupSet,
@@ -88,6 +102,80 @@ class TronClassClient:
             return HomeworkListResponse.model_validate(data).items
         except Exception as e:
             raise SchemaError("HomeworkListResponse", data) from e
+
+    async def get_profile(self) -> Profile:
+        data = await self._http.get_json("/api/profile")
+        try:
+            return Profile.model_validate(data)
+        except Exception as e:
+            raise SchemaError("Profile", data) from e
+
+    async def get_course(self, course_id: int) -> dict[str, Any]:
+        data = await self._http.get_json(f"/api/courses/{course_id}")
+        if not isinstance(data, dict):
+            raise SchemaError("CourseDetail", data)
+        return data
+
+    async def get_course_modules(self, course_id: int) -> list[CourseModule]:
+        data = await self._http.get_json(f"/api/courses/{course_id}/modules")
+        try:
+            items = data.get("modules", []) if isinstance(data, dict) else []
+            return [CourseModule.model_validate(item) for item in items]
+        except Exception as e:
+            raise SchemaError("CourseModules", data) from e
+
+    async def get_course_outline(self, course_id: int) -> CourseOutline:
+        data = await self._http.get_json(f"/api/courses/{course_id}/outline")
+        try:
+            return CourseOutline.model_validate(data)
+        except Exception as e:
+            raise SchemaError("CourseOutline", data) from e
+
+    async def get_course_score(self, course_id: int) -> CourseScore:
+        data = await self._http.get_json(f"/api/course/{course_id}/score")
+        try:
+            return CourseScore.model_validate(data)
+        except Exception as e:
+            raise SchemaError("CourseScore", data) from e
+
+    async def get_score_items(self, course_id: int) -> list[ScoreItem]:
+        data = await self._http.get_json(f"/api/courses/{course_id}/score-items")
+        try:
+            return ScoreItemListResponse.model_validate(data).items
+        except Exception as e:
+            raise SchemaError("ScoreItemListResponse", data) from e
+
+    async def get_course_exams(self, course_id: int) -> list[Exam]:
+        data = await self._http.get_json(f"/api/courses/{course_id}/exams")
+        try:
+            return ExamListResponse.model_validate(data).items
+        except Exception as e:
+            raise SchemaError("ExamListResponse", data) from e
+
+    async def get_activity(self, activity_id: int) -> dict[str, Any]:
+        data = await self._http.get_json(f"/api/activities/{activity_id}")
+        if not isinstance(data, dict):
+            raise SchemaError("ActivityDetail", data)
+        return data
+
+    async def get_homework(self, homework_id: int) -> dict[str, Any]:
+        data = await self._http.get_json(f"/api/homework-activities/{homework_id}")
+        if not isinstance(data, dict):
+            raise SchemaError("HomeworkDetail", data)
+        return data
+
+    async def get_forum_topics(self, activity_id: int) -> list[ForumTopic]:
+        data = await self._http.get_json(f"/api/activities/{activity_id}/topics")
+        try:
+            return TopicListResponse.model_validate(data).items
+        except Exception as e:
+            raise SchemaError("TopicListResponse", data) from e
+
+    async def get_topic(self, topic_id: int) -> dict[str, Any]:
+        data = await self._http.get_json(f"/api/topics/{topic_id}")
+        if not isinstance(data, dict):
+            raise SchemaError("TopicDetail", data)
+        return data
 
     # ------------------------------------------------------------------ #
     # 待辦事項

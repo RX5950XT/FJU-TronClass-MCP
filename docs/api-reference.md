@@ -114,10 +114,30 @@ Request body：
 
 ---
 
-## 其他
+## 其他已驗證（2026-08-24）
 
-### GET /org/global-config
-無需認證，取得 LMS 設定資訊（語言、主題等）。
+| 功能 | 端點 |
+|------|------|
+| 個人檔案 | `GET /api/profile` |
+| 課程詳情 | `GET /api/courses/{id}` |
+| 課程大綱 | `GET /api/courses/{id}/outline` |
+| 課程模組 | `GET /api/courses/{id}/modules` |
+| 修課名單 | `GET /api/course/{id}/students` |
+| 選課（含教師） | `GET /api/course/{id}/enrollments` |
+| 分組集合 | `GET /api/courses/{id}/group-sets` |
+| 作業列表 | `GET /api/courses/{id}/homework-activities` |
+| 作業詳情 | `GET /api/homework-activities/{id}` |
+| 活動詳情 | `GET /api/activities/{id}` |
+| 討論主題 | `GET /api/activities/{id}/topics` |
+| 主題詳情 | `GET /api/topics/{id}` |
+| 成績組成 | `GET /api/courses/{id}/score-items` |
+| 總分（常未公布） | `GET /api/course/{id}/score` |
+| 考試 | `GET /api/courses/{id}/exams` |
+| 課堂互動作 | `GET /api/courses/{id}/interactions` |
+
+活動 `type`：`material` / `online_video` / `homework` / `forum` / `web_link` / `page`
+
+**沒有、或學生權限拿不到：** inbox、calendar、notifications、逐項已公布成績、點名明細、代繳作業、掃其他組 submission。
 
 ---
 

@@ -17,9 +17,10 @@ def list_cmd(
     course_id: int = typer.Argument(..., help="課程 ID（從 fjumcp courses list 取得）"),
     videos_only: bool = typer.Option(False, "--videos", help="只顯示影片活動"),
     materials_only: bool = typer.Option(False, "--materials", help="只顯示教材活動"),
+    type_filter: str | None = typer.Option(None, "--type", "-t", help="過濾類型：material/online_video/homework/forum/web_link/page"),
     as_json: bool = typer.Option(False, "--json", help="以 JSON 輸出"),
 ) -> None:
-    """列出課程中所有活動（教材與影片）。"""
+    """列出課程中所有活動。"""
 
     async def _run() -> None:
         async with build_client() as client:
@@ -30,6 +31,8 @@ def list_cmd(
             filtered = [a for a in activities if a.is_video]
         elif materials_only:
             filtered = [a for a in activities if a.is_material]
+        elif type_filter:
+            filtered = [a for a in activities if a.type == type_filter]
 
         if as_json:
             from fju_tronclass.cli._output import emit_json
@@ -42,6 +45,7 @@ def list_cmd(
                         "type": a.type,
                         "complete": a.is_complete,
                         "duration": a.video_duration,
+                        "link": a.data.link if a.data else "",
                         "uploads": [{"id": u.id, "name": u.name, "size": u.size} for u in a.uploads],
                     }
                     for a in filtered
@@ -58,18 +62,11 @@ def list_cmd(
         table.add_column("名稱", min_width=20)
         table.add_column("類型", width=12)
         table.add_column("完成", width=6)
-        table.add_column("時長/附件")
+        table.add_column("補充")
 
         for a in filtered:
-            type_label = "[cyan]影片[/cyan]" if a.is_video else "[yellow]教材[/yellow]"
             done_label = "[green]✓[/green]" if a.is_complete else "[dim]✗[/dim]"
-            if a.is_video and a.video_duration:
-                extra = f"{a.video_duration}s"
-            elif a.is_material and a.uploads:
-                extra = f"{len(a.uploads)} 個附件"
-            else:
-                extra = ""
-            table.add_row(str(a.id), a.display_name, type_label, done_label, extra)
+            table.add_row(str(a.id), a.display_name, a.type_label, done_label, a.extra_text)
 
         console.print(table)
 
@@ -81,5 +78,34 @@ def list_cmd(
                 for u in a.uploads:
                     size_mb = u.size / 1_048_576
                     console.print(f"  upload {u.id}  {u.name}  ({size_mb:.1f} MB)")
+
+    run_async_command(_run())
+
+
+@app.command("show")
+def show_activity(
+    activity_id: int = typer.Argument(..., help="活動 ID"),
+    as_json: bool = typer.Option(False, "--json", help="以 JSON 輸出"),
+) -> None:
+    """顯示活動詳情（作業說明、連結、頁面內容）。"""
+    from fju_tronclass.cli._output import emit_json
+    from fju_tronclass.models.catalog import html_to_text
+
+    async def _run() -> None:
+        async with build_client() as client:
+            data = await client.get_activity(activity_id)
+        if as_json:
+            emit_json(data)
+            return
+        payload = data.get("data")
+        if not isinstance(payload, dict):
+            payload = {}
+        console.print(f"[bold]{data.get('title') or data.get('name')}[/bold]  #{data.get('id')}")
+        console.print(f"類型 {data.get('type')}　課程 {data.get('course_id')}")
+        if payload.get("link"):
+            console.print(f"連結 {payload['link']}")
+        desc = html_to_text(str(payload.get("description") or payload.get("content") or ""))
+        if desc:
+            console.print("\n" + desc[:2000])
 
     run_async_command(_run())

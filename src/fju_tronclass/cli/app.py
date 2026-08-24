@@ -8,11 +8,16 @@ from fju_tronclass.cli.commands import (
     activities,
     bulletins,
     courses,
+    digest,
     download,
+    exams,
+    forums,
     groups,
     homework,
     login,
     people,
+    profile,
+    scores,
     todos,
     video,
 )
@@ -31,6 +36,11 @@ app.add_typer(download.app, name="download")
 app.add_typer(people.app, name="people")
 app.add_typer(groups.app, name="groups")
 app.add_typer(homework.app, name="homework")
+app.add_typer(scores.app, name="scores")
+app.add_typer(exams.app, name="exams")
+app.add_typer(forums.app, name="forums")
+app.add_typer(profile.app, name="profile", invoke_without_command=True)
+app.add_typer(digest.app, name="digest", invoke_without_command=True)
 app.add_typer(video.app, name="video")
 app.add_typer(login.app, name="login", invoke_without_command=True)
 

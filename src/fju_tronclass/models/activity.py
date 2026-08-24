@@ -11,9 +11,14 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class ActivityData(BaseModel):
-    """活動附帶資料（影片使用）。"""
+    """活動附帶資料。"""
 
-    duration: int | None = None  # 影片總時長（秒）
+    model_config = ConfigDict(extra="ignore")
+
+    duration: int | None = None
+    link: str = ""
+    description: str = ""
+    content: str = ""
 
 
 class ActivityUpload(BaseModel):
@@ -78,6 +83,28 @@ class Activity(BaseModel):
         if self.completeness_tip:
             return "已完成" in self.completeness_tip
         return (self.completeness or 0) >= 100
+
+    @property
+    def type_label(self) -> str:
+        return {
+            "material": "教材",
+            "online_video": "影片",
+            "homework": "作業",
+            "forum": "討論",
+            "web_link": "連結",
+            "page": "頁面",
+            "exam": "考試",
+        }.get(self.type, self.type or "—")
+
+    @property
+    def extra_text(self) -> str:
+        if self.is_video and self.video_duration:
+            return f"{self.video_duration}s"
+        if self.is_material and self.uploads:
+            return f"{len(self.uploads)} 個附件"
+        if self.data and self.data.link:
+            return self.data.link
+        return ""
 
 
 class ActivityListResponse(BaseModel):

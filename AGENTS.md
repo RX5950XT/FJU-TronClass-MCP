@@ -20,23 +20,22 @@ uv run fjumcp serve
 
 ```text
 fjumcp
-├── whoami [--quiet] [--verbose]
-├── keepalive [--verbose]
-├── serve
-├── courses list [--semester] [--json]
-├── todos list [--include-done] [--json]
-├── bulletins list [--limit] [--json]
-├── activities list [--videos] [--materials] [--json]
-├── download upload
-├── download search
-├── download course
-├── people list
-├── video mark-complete
-├── video batch-complete
-├── login [--cookie V2-...]
-├── login cookie [--cookie V2-...]
-└── login logout
+├── whoami / keepalive / serve / login
+├── profile
+├── digest [--semester]
+├── courses list|show|outline|modules
+├── todos list
+├── bulletins list [--full]
+├── activities list [--type] / show
+├── download upload|search|course
+├── people list / groups list
+├── homework list|show
+├── scores list / exams list
+├── forums topics|topic
+└── video mark-complete|batch-complete
 ```
+
+所有 `list` / `show` 幾乎都有 `--json`。
 
 ## 驗證指令
 
@@ -50,24 +49,14 @@ uv run fjumcp --help
 ## 認證
 
 - session cookie 優先順序：keyring > `~/.config/fju-tronclass/session`（0600）> 環境變數 / `.env`
-- Linux / WSL / headless 沒有可用 keyring 時，自動走本機檔案，rotation 仍會回寫
-- 登入：`fjumcp login --cookie 'V2-...'` 或互動式 `fjumcp login`
-- session 效期 24 小時滑動：伺服器每次回應 rotate cookie；`whoami` / `keepalive` / CLI factory / MCP factory 成功時寫回最新值
-- 閒置超過一天會過期；排程跑 `fjumcp keepalive`（`scripts/keepalive.sh`）可維持
-- cookie 非 HttpOnly，過期時可從已登入瀏覽器的 `document.cookie` 取得新值
-- session 過期時伺服器回 401（已映射為 `SessionExpiredError`）
-
-## 重要路徑
-
-- CLI 入口：`src/fju_tronclass/cli/app.py`
-- MCP 入口：`src/fju_tronclass/__main__.py`
-- 設定：`src/fju_tronclass/config.py`
-- Cookie 儲存：`src/fju_tronclass/auth/cookie_store.py`
-- 驗證 + 回存：`src/fju_tronclass/auth/session.py`
+- 登入：`fjumcp login --cookie 'V2-...'`
+- 24h 滑動；`keepalive` cron 維持
+- 過期回 401
 
 ## 規則
 
 - 不要把 cookie 寫進 git / README / skill
 - 不要做 group ID 暴力掃描
+- 不要代繳作業、改成績、代發討論
 - 下載教材只供本人學習
-- `video mark-complete` 會改觀看進度，先 `--dry-run`
+- `video mark-complete` 先 `--dry-run`

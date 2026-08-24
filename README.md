@@ -190,16 +190,16 @@ fjumcp
 ├── whoami [--quiet] [--verbose]
 ├── keepalive [--verbose]
 ├── serve
-├── courses list
+├── courses list|show|outline|modules
 ├── todos list
-├── bulletins list
-├── activities list
-├── download upload
-├── download search
-├── download course
-├── people list
-├── groups list
-├── homework list
+├── bulletins list [--full]
+├── activities list [--type] / show
+├── download upload|search|course
+├── people / groups
+├── homework list|show
+├── scores / exams
+├── forums topics|topic
+├── profile / digest
 ├── video mark-complete
 ├── video batch-complete
 ├── login [--cookie V2-...]
