@@ -34,8 +34,8 @@ class Person(BaseModel):
             "user_no": data.get("user_no") or user.get("user_no") or "",
             "roles": data.get("roles") or [],
             "group_ids": data.get("group_ids") or [],
-            "department": dept.get("name", "") if isinstance(dept, dict) else (dept or ""),
-            "grade": grade.get("name", "") if isinstance(grade, dict) else (grade or ""),
+            "department": (dept.get("name") if isinstance(dept, dict) else dept) or "",
+            "grade": (grade.get("name") if isinstance(grade, dict) else grade) or "",
         }
 
     @property

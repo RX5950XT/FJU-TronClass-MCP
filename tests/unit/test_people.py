@@ -26,6 +26,12 @@ def test_person_from_student_payload() -> None:
     assert person.grade == "二年級"
 
 
+def test_person_null_department() -> None:
+    person = Person.model_validate({"id": 1, "name": "測", "department": {"name": None}, "grade": None})
+    assert person.department == ""
+    assert person.grade == ""
+
+
 def test_person_from_enrollment_payload() -> None:
     person = Person.model_validate(
         {
