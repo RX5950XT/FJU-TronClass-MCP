@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 from fju_tronclass.client.http import TronClassHttp
@@ -277,3 +278,112 @@ class TronClassClient:
             return ActivityReadResult.model_validate(data)
         except Exception as e:
             raise SchemaError("ActivityReadResult", data) from e
+
+    # ------------------------------------------------------------------ #
+    # 作業繳交 / 草稿（2026-09-22 相對論 HW#1 全流程實測驗證）
+    # ------------------------------------------------------------------ #
+
+    async def get_student_submission_list(
+        self,
+        activity_id: int,
+        student_id: int,
+    ) -> list[dict[str, Any]]:
+        """
+        列出某活動中指定學生的繳交記錄（含草稿）。
+
+        Endpoint 自 FJU 前端 bundle js-71788 還原：
+        ``GET /api/activities/{aid}/students/{uid}/submission_list``。
+        """
+        data = await self._http.get_json(
+            f"/api/activities/{activity_id}/students/{student_id}/submission_list"
+        )
+        items = data.get("list") if isinstance(data, dict) else data
+        result: list[dict[str, Any]] = items if isinstance(items, list) else []
+        return result
+
+    async def create_upload(self, name: str, size: int, parent_id: int = 0) -> dict[str, Any]:
+        """
+        建立上傳（preUpload），取得 id 與 upload_url。
+
+        Payload 依前端 js-56834 ``preUpload`` 還原。
+        回應含 ``id``、``upload_url``、``storage_type``、``status``。
+        """
+        payload: dict[str, Any] = await self._http.post_json(
+            "/api/uploads",
+            json_body={
+                "name": name,
+                "size": size,
+                "parent_id": parent_id,
+                "is_scorm": False,
+                "is_wmpkg": False,
+            },
+        )
+        return payload
+
+    async def put_upload_file(
+        self,
+        upload_url: str,
+        file_path: Path,
+        content_type: str = "application/octet-stream",
+    ) -> dict[str, Any]:
+        """
+        把檔案本體 multipart PUT 到 upload_url（通常在 mediaelearn2 外部主機）。
+
+        前端 upload2Local 走 ``FormData`` + PUT，欄位名固定為 ``file``。
+        回應含 ``file_key``。
+        """
+        return await self._http.put_multipart(
+            upload_url, file_path, field="file", content_type=content_type
+        )
+
+    async def delete_upload(self, upload_id: int) -> dict[str, Any]:
+        """刪除自己的 upload（清理誤傳檔案；已刪者回 404 → ClientError）。"""
+        removed: dict[str, Any] = await self._http._request_with_retry(
+            "DELETE", f"/api/uploads/{upload_id}"
+        )
+        return removed
+
+    async def save_homework_submission(
+        self,
+        activity_id: int,
+        *,
+        comment: str = "",
+        upload_ids: list[int] | None = None,
+        slides: list[int] | None = None,
+        is_draft: bool = True,
+        mode: str = "normal",
+        other_resources: list[Any] | None = None,
+        uploads_in_rich_text: list[Any] | None = None,
+        submission_id: int | None = None,
+    ) -> dict[str, Any]:
+        """
+        儲存作業 submission（本 CLI 只允許 is_draft=True）。
+
+        Endpoint 與 payload 自前端 js-88788 ``save`` 還原：
+        - 新建草稿：``POST /api/course/activities/{aid}/submissions``
+        - 更新既有草稿：同 endpoint 改 PUT，body 加 ``submission_id``
+        """
+        if not is_draft:
+            raise ValueError(
+                "fjumcp 不提供正式繳交：is_draft 必須為 True。"
+                "正式繳交請由本人於 TronClass 網頁操作。"
+            )
+        body: dict[str, Any] = {
+            "comment": comment,
+            "uploads": upload_ids or [],
+            "slides": slides or [],
+            "is_draft": is_draft,
+            "mode": mode,
+            "other_resources": other_resources or [],
+            "uploads_in_rich_text": uploads_in_rich_text or [],
+        }
+        if submission_id is not None:
+            body["submission_id"] = submission_id
+        path = f"/api/course/activities/{activity_id}/submissions"
+        if submission_id is not None:
+            saved: dict[str, Any] = await self._http._request_with_retry(
+                "PUT", path, json_body=body
+            )
+            return saved
+        created: dict[str, Any] = await self._http.post_json(path, json_body=body)
+        return created

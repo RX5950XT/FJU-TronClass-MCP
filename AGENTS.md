@@ -29,7 +29,7 @@ fjumcp
 ├── activities list [--type] / show
 ├── download upload|search|course|semester
 ├── people list / groups list
-├── homework list|show
+├── homework list|show|submissions|upload
 ├── scores list / exams list
 ├── forums topics|topic
 └── video mark-complete|batch-complete
@@ -57,6 +57,6 @@ uv run fjumcp --help
 
 - 不要把 cookie 寫進 git / README / skill
 - 不要做 group ID 暴力掃描
-- 不要代繳作業、改成績、代發討論
+- 不要代繳作業（CLI 只能存草稿，正式繳交由本人於網頁操作）、不要改成績、代發討論
 - 下載教材只供本人學習
 - `video mark-complete` 先 `--dry-run`

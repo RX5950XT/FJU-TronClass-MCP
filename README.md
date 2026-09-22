@@ -67,6 +67,8 @@ fjumcp activities list <course_id> --type forum
 fjumcp groups list <course_id> --json
 fjumcp people list <course_id>
 fjumcp homework list <course_id>
+fjumcp homework submissions <homework_id>
+fjumcp homework upload <homework_id> <檔案>   # 只存草稿
 fjumcp scores list <course_id>
 fjumcp forums topics <forum_activity_id>
 fjumcp download course <course_id> --dry-run
@@ -106,7 +108,7 @@ fjumcp
 ├── activities list [--type] / show
 ├── download upload|search|course|semester
 ├── people list / groups list
-├── homework list|show
+├── homework list|show|submissions|upload
 ├── scores list / exams list
 ├── forums topics|topic
 ├── video mark-complete|batch-complete

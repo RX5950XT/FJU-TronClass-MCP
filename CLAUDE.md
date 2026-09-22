@@ -61,6 +61,11 @@ src/fju_tronclass/
 | 修課名單 | `GET /api/course/{id}/students` |
 | 分組集合 | `GET /api/courses/{id}/group-sets`（學生通常只看到自己組名） |
 | 作業 | `GET /api/courses/{id}/homework-activities` |
+| 繳交記錄 | `GET /api/activities/{aid}/students/{uid}/submission_list` |
+| 建立上傳 | `POST /api/uploads`（preUpload，回 `id` + `upload_url`） |
+| 上傳檔案本體 | `PUT {upload_url}` multipart `file` 欄位（外部媒體主機，不需 session） |
+| 儲存草稿 | `POST /api/course/activities/{aid}/submissions`，`is_draft:true`；更新既有草稿改 `PUT` 並帶 `submission_id` |
+| 刪除上傳 | `DELETE /api/uploads/{id}` |
 | 討論主題 | `GET /api/activities/{id}/topics` |
 | 成績組成 | `GET /api/courses/{id}/score-items` |
 
@@ -83,6 +88,8 @@ src/fju_tronclass/
 - `Activity.name`、`Activity.completeness`、`Activity.completenessTip` 可為 `null`
 - `Todo.due_time` 對應 API 的 `end_time`（alias）
 - `post_activity_read` 每次 end-start 不可超過 125 秒（伺服器限制）
+- 作業繳交 payload 依前端 `save` 還原：`{comment, uploads:[id], slides:[], is_draft, mode, other_resources:[], uploads_in_rich_text:[]}`；草稿更新帶 `submission_id`。CLI 僅允許 `is_draft:true`，正式繳交由本人於網頁操作
+- 上傳流程：preUpload → multipart PUT → 輪詢 `GET /api/uploads/{id}` 至 `status=ready` → 存草稿；cookie 已綁 elearn2 host，mediaelearn2 不會收到 session（與瀏覽器一致）
 - Cookie 優先順序：keyring > `~/.config/fju-tronclass/session` > 環境變數 / `.env`
 - Session 效期 24 小時滑動；伺服器每次回應 rotate cookie，`TronClassHttp.session_cookie` 追蹤最新值。`whoami` / `keepalive` / CLI+MCP factory 成功結束時自動存回（持續使用即持續延長）
 - Linux / WSL 沒有 Credential Manager 時走本機 0600 檔案；`fjumcp keepalive` 給排程用（成功安靜）

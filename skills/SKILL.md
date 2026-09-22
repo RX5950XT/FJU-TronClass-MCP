@@ -58,7 +58,7 @@ fjumcp
 ├── download semester 114-2 [--dry-run]
 ├── people list <course_id> [--role student|instructor] [--json]
 ├── groups list <course_id> [--json]
-├── homework list|show
+├── homework list|show|submissions|upload
 ├── scores list <course_id>
 ├── exams list <course_id>
 ├── forums topics <forum_activity_id>
@@ -104,6 +104,18 @@ fjumcp forums topic <topic_id>
 fjumcp homework show <homework_id>
 ```
 
+### 作業繳交（草稿）
+
+```bash
+fjumcp homework submissions <homework_id>          # 看本人繳交記錄（草稿／已繳＋附件）
+fjumcp homework upload <homework_id> <檔案>         # 上傳並存草稿（絕不正式繳交）
+```
+
+`upload` 只寫草稿：preUpload → multipart PUT → 等 `status=ready` →
+`POST /api/course/activities/{aid}/submissions`（`is_draft:true`；已有草稿改 PUT 帶 `submission_id`）。
+正式繳交一律由本人於作業頁按「繳交作業」；`allow_retract:false` 的作業繳交後無法收回，按之前務必確認附件正確。
+清誤傳孤兒檔：`DELETE /api/uploads/{id}`（client.delete_upload）。
+
 ### 待辦與摘要
 
 ```bash
@@ -117,7 +129,7 @@ fjumcp todos list --json
 
 - 不要把 cookie 寫進 git / README / skill
 - 不要做 group ID 暴力掃描、不要打別組 submission
-- 不要代繳作業、改成績、代發討論
+- 不要代繳作業（CLI 只能存草稿；正式繳交由本人操作）、不要改成績、代發討論
 - `video mark-complete` 先 `--dry-run`
 - Hermes 本體走 CLI，不要 `hermes mcp add`
 

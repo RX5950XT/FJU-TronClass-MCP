@@ -12,6 +12,7 @@ class UploadMeta(BaseModel):
     name: str
     size: int = 0
     allow_download: bool = True
+    status: str = ""
     created_at: datetime | None = None
 
 

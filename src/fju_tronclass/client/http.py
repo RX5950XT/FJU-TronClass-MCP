@@ -94,8 +94,41 @@ class TronClassHttp:
         path: str,
         json_body: dict[str, Any],
     ) -> Any:
-        """發送 POST 請求並回傳 JSON。"""
+        """發送 POST 請求並回傳 JSON（已解析為 Python 物件）。"""
         return await self._request_with_retry("POST", path, json_body=json_body)
+
+    async def put_multipart(
+        self,
+        url: str,
+        file_path: Path,
+        *,
+        field: str = "file",
+        filename: str | None = None,
+        content_type: str = "application/octet-stream",
+    ) -> dict[str, Any]:
+        """
+        以 multipart/form-data PUT 上傳檔案到指定 URL（通常是外部媒體主機）。
+
+        Session cookie 已綁定 elearn2 host，httpx 不會把它送往外部主機，
+        與瀏覽器前端行為一致（媒體主機不需要 session）。
+        """
+        data = file_path.read_bytes()
+        upload_name = filename or file_path.name
+        try:
+            response = await self._client.put(
+                url,
+                files={field: (upload_name, data, content_type)},
+            )
+        except httpx.RequestError as e:
+            raise ServerError(0, str(e)) from e
+        _raise_for_status(response)
+        if not response.content:
+            return {}
+        try:
+            result = response.json()
+        except ValueError:
+            return {}
+        return result if isinstance(result, dict) else {"data": result}
 
     async def stream_download(self, url: str, dest: Path) -> int:
         """串流下載到 dest 路徑，回傳寫入 bytes 數。"""
