@@ -6,7 +6,6 @@ from collections import defaultdict
 
 from fju_tronclass.models.people import CourseGroup, GroupMember, GroupSet, Homework, Person
 
-
 _CN = {
     1: "一",
     2: "二",
